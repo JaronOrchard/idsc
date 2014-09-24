@@ -7,7 +7,7 @@ Make sure you have dependencies:
 In Ubuntu "sudo apt-get install TODO:figure these out"
 
 To build run:
-"python waf configue"
+"python waf configure"
 "python waf get_deps"
 "python waf build"
 
