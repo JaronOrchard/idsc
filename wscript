@@ -42,9 +42,13 @@ class SFGUIPatch(Task):
         vbr = vbr.replace('GLee.h', 'GL/glew.h').replace('GLEE', 'GLEW')
         sfgui_vbr_node.write(vbr, flags='wb')
 
-
 def get_deps(ctx):
     deps = [
+        {
+            'name': 'glm',
+            'url': 'http://softlayer-dal.dl.sourceforge.net/project/ogl-math/glm-0.9.5.4/glm-0.9.5.4.zip',
+            'hash': 'c25002f109104bb8eb37a7e74c745cbc0a713ec5d9a857050c7878edb5ee246c'
+        },
         {
             'name': 'tetgen',
             'url': 'http://wias-berlin.de/software/tetgen/1.5/src/tetgen1.5.0.zip',
@@ -208,7 +212,7 @@ def build(ctx):
     libs = ['jpeg', 'sndfile']
     stlibs = []
     stlibpath = []
-    includes = [tetgen_include_node, glew_include_node, sfml_node.make_node('include'), sfgui_node.make_node('include')]
+    includes = [tetgen_include_node, glew_include_node, sfml_node.make_node('include'), sfgui_node.make_node('include'), 'deps/glm_src/glm/glm']
 
     if ctx.env['DEST_OS'] == 'linux':
         uselibs.extend(['X11', 'XRANDR', 'OPENAL', 'SNDFILE'])
