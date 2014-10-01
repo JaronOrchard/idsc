@@ -28,7 +28,7 @@ int main() {
     settings.antialiasingLevel = 8;
     settings.majorVersion = 3;
     settings.minorVersion = 2;
-    sf::Window window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Cloth Simulation", sf::Style::Default, settings);
+    sf::Window window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "DSC Demo", sf::Style::Default, settings);
 
     printf("Initializing OpenGL...\n");
     glewExperimental = GL_TRUE;
@@ -50,18 +50,17 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     printf("Loading basic mesh...\n");
-    // IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/cube.obj");
-    tetgenio in;
-    in.load_poly("assets/models/example");
+    IndexedFaceSet * tetmesh = IndexedFaceSet::load_from_obj("assets/models/teapot.obj");
 
-    printf("Generating tet mesh...\n");
+    // printf("Generating tet mesh...\n");
     // tetgenio * in = IndexedFaceSet::to_tetgenio(*mesh);
     // delete mesh;
-    tetgenio out;
-    tetgenbehavior switches;
-    switches.parse_commandline("");
-    tetrahedralize(&switches, &in, &out);
-    IndexedFaceSet * tetmesh = IndexedFaceSet::from_tetgenio(out);
+    // tetgenio out;
+    // tetgenbehavior switches;
+    // switches.parse_commandline("pq");
+    // tetrahedralize(&switches, in, &out);
+    // delete in;
+    // IndexedFaceSet * tetmesh = IndexedFaceSet::from_tetgenio(out);
 
     printf("Initializing display...\n");
     Shader * shader = Shader::compile_from("shaders/wire.vsh", "shaders/wire.gsh", "shaders/wire.fsh");
@@ -71,7 +70,7 @@ int main() {
     check_gl_error();
 
     glm::mat4 model_transform = glm::mat4();
-    glm::mat4 view_transform = glm::lookAt(glm::vec3(10, 30, 30), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    glm::mat4 view_transform = glm::lookAt(glm::vec3(2, 6, 6), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
     glm::mat4 perspective_transform = glm::perspective(FOV, ((float) WINDOW_WIDTH) / WINDOW_HEIGHT, 0.1f, 100.0f);
     glm::mat4 MVP = perspective_transform * view_transform * model_transform;
     renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");

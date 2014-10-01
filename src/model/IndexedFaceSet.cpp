@@ -5,13 +5,42 @@
 #include <vector>
 
 tetgenio * IndexedFaceSet::to_tetgenio(IndexedFaceSet & ifs) {
-    return NULL;
+    tetgenio * out = new tetgenio();
+
+    out->firstnumber = 0;
+    out->numberofpoints = ifs.num_vertices;
+    out->pointlist = new REAL[ifs.num_vertices * 3];
+    // cant use memcpy because out->pointlist could be double precision
+    for (int i = 0; i < ifs.num_vertices * 3; i++) {
+        out->pointlist[i] = ifs.vertices[i];
+    }
+
+    out->numberoffacets = ifs.num_indices / 3;
+    out->facetlist = new tetgenio::facet[out->numberoffacets];
+    out->facetmarkerlist = new int[out->numberoffacets];
+    for (int i = 0; i < out->numberoffacets; i++) {
+        out->facetlist[i].numberofholes = 0;
+        out->facetlist[i].holelist = NULL;
+        out->facetlist[i].numberofpolygons = 1;
+        out->facetlist[i].polygonlist = new tetgenio::polygon[1];
+        out->facetlist[i].polygonlist[0].numberofvertices = 3;
+        out->facetlist[i].polygonlist[0].vertexlist = new int[3];
+        out->facetlist[i].polygonlist[0].vertexlist[0] = ifs.indices[i * 3];
+        out->facetlist[i].polygonlist[0].vertexlist[1] = ifs.indices[i * 3 + 1];
+        out->facetlist[i].polygonlist[0].vertexlist[2] = ifs.indices[i * 3 + 2];
+        out->facetmarkerlist[i] = 0;
+    }
+
+    return out;
 }
 
 IndexedFaceSet * IndexedFaceSet::from_tetgenio(tetgenio & tet) {
     int num_vertices = tet.numberofpoints;
     float * vertex_buffer = (float *) malloc(num_vertices * 3 * sizeof(float));
-    memcpy(vertex_buffer, tet.pointlist, num_vertices * 3 * sizeof(float));
+    // cant use memcpy because tet.pointlist could be double precision
+    for (int i = 0; i < num_vertices * 3; i++) {
+        vertex_buffer[i] = tet.pointlist[i];
+    }
 
     int num_indices = tet.numberoftrifaces * 3;
     int * index_buffer = (int *) malloc(num_indices * sizeof(int));
@@ -25,6 +54,9 @@ IndexedFaceSet * IndexedFaceSet::load_from_obj(std::string file_name) {
     std::vector<float> vertices;
     std::vector<int> indices;
     for (std::string line; getline(input, line);) {
+        if (line.size() <= 3) {
+            continue;
+        }
         unsigned int start_ind;
         bool in_space = false;
         for (start_ind = 0; start_ind < line.size(); start_ind++) {
