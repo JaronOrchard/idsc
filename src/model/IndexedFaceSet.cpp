@@ -34,7 +34,7 @@ tetgenio * IndexedFaceSet::to_tetgenio(IndexedFaceSet & ifs) {
     return out;
 }
 
-IndexedFaceSet * IndexedFaceSet::from_tetgenio(tetgenio & tet) {
+IndexedFaceSet * IndexedFaceSet::surface_mesh_from_tetgenio(tetgenio & tet) {
     int num_vertices = tet.numberofpoints;
     float * vertex_buffer = (float *) malloc(num_vertices * 3 * sizeof(float));
     // cant use memcpy because tet.pointlist could be double precision
@@ -49,12 +49,43 @@ IndexedFaceSet * IndexedFaceSet::from_tetgenio(tetgenio & tet) {
     return new IndexedFaceSet(num_vertices, vertex_buffer, num_indices, index_buffer);
 }
 
+IndexedFaceSet * IndexedFaceSet::tet_mesh_from_tetgenio(tetgenio & tet) {
+    int num_vertices = tet.numberofpoints;
+    float * vertex_buffer = (float *) malloc(num_vertices * 3 * sizeof(float));
+    // cant use memcpy because tet.pointlist could be double precision
+    for (int i = 0; i < num_vertices * 3; i++) {
+        vertex_buffer[i] = tet.pointlist[i];
+    }
+
+    int num_indices = tet.numberoftetrahedra * 4 * 3;
+    int * index_buffer = (int *) malloc(num_indices * sizeof(int));
+    for (int i = 0; i < tet.numberoftetrahedra; i++) {
+        index_buffer[i * 12] = tet.tetrahedronlist[i * 4];
+        index_buffer[i * 12 + 1] = tet.tetrahedronlist[i * 4 + 1];
+        index_buffer[i * 12 + 2] = tet.tetrahedronlist[i * 4 + 2];
+
+        index_buffer[i * 12 + 3] = tet.tetrahedronlist[i * 4];
+        index_buffer[i * 12 + 4] = tet.tetrahedronlist[i * 4 + 1];
+        index_buffer[i * 12 + 5] = tet.tetrahedronlist[i * 4 + 3];
+
+        index_buffer[i * 12 + 6] = tet.tetrahedronlist[i * 4];
+        index_buffer[i * 12 + 7] = tet.tetrahedronlist[i * 4 + 2];
+        index_buffer[i * 12 + 8] = tet.tetrahedronlist[i * 4 + 3];
+
+        index_buffer[i * 12 + 9] = tet.tetrahedronlist[i * 4 + 1];
+        index_buffer[i * 12 + 10] = tet.tetrahedronlist[i * 4 + 2];
+        index_buffer[i * 12 + 11] = tet.tetrahedronlist[i * 4 + 3];
+    }
+
+    return new IndexedFaceSet(num_vertices, vertex_buffer, num_indices, index_buffer);
+}
+
 IndexedFaceSet * IndexedFaceSet::load_from_obj(std::string file_name) {
     std::ifstream input(file_name);
     std::vector<float> vertices;
     std::vector<int> indices;
     for (std::string line; getline(input, line);) {
-        if (line.size() <= 3) {
+        if (line.size() <= 0) {
             continue;
         }
         unsigned int start_ind;
