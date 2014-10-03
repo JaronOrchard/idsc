@@ -29,9 +29,9 @@ void Renderable::bind_attribute(float * buffer, int size, int channels, char * a
     glBufferData(GL_ARRAY_BUFFER, size, buffer, GL_STATIC_DRAW);
 
     model_attribute_t attribute = {
-        .buffer_id = buffer_id,
-        .attribute_id = attribute_location,
-        .num_channels = channels
+		buffer_id,
+        attribute_location,
+        channels
     };
 
     attributes.push_back(attribute);
@@ -55,7 +55,7 @@ void Renderable::bind_uniform(float * buffer, uniform_data_t type, int count, ch
 
     int channels;
     switch (type) {
-        case FLOAT:
+		case SCALAR_FLOAT: //FLOAT:
             channels = 1;
             break;
         case VEC2_FLOAT:
@@ -73,7 +73,7 @@ void Renderable::bind_uniform(float * buffer, uniform_data_t type, int count, ch
         case MAT4_FLOAT:
             channels = 16;
             break;
-        case INT:
+		case SCALAR_INT: //INT:
             channels = 1;
             break;
         case VEC2_INT:
@@ -92,12 +92,12 @@ void Renderable::bind_uniform(float * buffer, uniform_data_t type, int count, ch
         void * copied_data = (void *) malloc(size * channels * count);
         memcpy(copied_data, buffer, size * channels * count);
         model_uniform_t uniform = {
-            .data = copied_data,
-            .location = uniform_location,
-            .type = type,
-            .count = count
+			copied_data,
+            uniform_location,
+            type,
+            count
         };
-        uniforms.emplace(uniform_name, uniform);
+		uniforms.insert(std::make_pair<std::string, model_uniform_t>(uniform_name, uniform));
     } else {
         model_uniform_t uniform = uniforms.at(uniform_name);
         if (uniform.type != type || uniform.count != count) {
@@ -143,10 +143,10 @@ void Renderable::bind_2d_texture(const void * data, int width, int height, GLenu
     GLuint texture_unit = textures.size();
 
     model_texture_t texture = {
-        .texture_unit = texture_unit,
-        .texture_id = texture_id,
-        .texture_uniform_id = uniform_id,
-        .texture_type = GL_TEXTURE_2D
+		texture_unit,
+        texture_id,
+        uniform_id,
+        GL_TEXTURE_2D
     };
 
     textures.push_back(texture);
@@ -155,10 +155,10 @@ void Renderable::bind_2d_texture(const void * data, int width, int height, GLenu
 
 void Renderable::render() {
 
-    for (auto kvPair : uniforms) {
-        model_uniform_t u = kvPair.second;
+	for (auto it = uniforms.begin(); it != uniforms.end(); ++it) {
+		model_uniform_t u = it->second;
         switch (u.type) {
-            case FLOAT:
+			case SCALAR_FLOAT: //FLOAT:
                 glUniform1fv(u.location, u.count, (GLfloat *) u.data);
                 break;
             case VEC2_FLOAT:
@@ -176,7 +176,7 @@ void Renderable::render() {
             case MAT4_FLOAT:
                 glUniformMatrix4fv(u.location, u.count, GL_FALSE, (GLfloat *) u.data);
                 break;
-            case INT:
+			case SCALAR_INT: //INT:
                 glUniform1iv(u.location, u.count, (GLint *) u.data);
                 break;
             case VEC2_INT:
@@ -192,17 +192,17 @@ void Renderable::render() {
     }
     check_gl_error();
 
-    for (model_texture_t texture : textures) {
-        glActiveTexture(texture.texture_unit + GL_TEXTURE0);
-        glBindTexture(texture.texture_type, texture.texture_id);
-        glUniform1i(texture.texture_uniform_id, texture.texture_unit);
+	for (auto it = textures.begin(); it != textures.end(); ++it) {
+        glActiveTexture(it->texture_unit + GL_TEXTURE0);
+        glBindTexture(it->texture_type, it->texture_id);
+        glUniform1i(it->texture_uniform_id, it->texture_unit);
     }
     check_gl_error();
 
-    for (model_attribute_t attribute : attributes) {
-        glEnableVertexAttribArray(attribute.attribute_id);
-        glBindBuffer(GL_ARRAY_BUFFER, attribute.buffer_id);
-        glVertexAttribPointer(attribute.attribute_id, attribute.num_channels, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+	for (auto it = attributes.begin(); it != attributes.end(); ++it) {
+        glEnableVertexAttribArray(it->attribute_id);
+        glBindBuffer(GL_ARRAY_BUFFER, it->buffer_id);
+        glVertexAttribPointer(it->attribute_id, it->num_channels, GL_FLOAT, GL_FALSE, 0, (void *) 0);
     }
     check_gl_error();
 
@@ -222,8 +222,8 @@ void Renderable::render() {
     }
     check_gl_error();
 
-    for (model_attribute_t attribute : attributes) {
-        glDisableVertexAttribArray(attribute.attribute_id);
+	for (auto it = attributes.begin(); it != attributes.end(); ++it) {
+        glDisableVertexAttribArray(it->attribute_id);
     }
     glActiveTexture(GL_TEXTURE0);
     check_gl_error();

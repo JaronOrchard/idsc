@@ -12,13 +12,13 @@
 #include "Shader.h"
 
 typedef enum {
-    FLOAT,
+    SCALAR_FLOAT, //FLOAT,
     VEC2_FLOAT,
     VEC3_FLOAT,
     VEC4_FLOAT,
     MAT3_FLOAT,
     MAT4_FLOAT,
-    INT,
+    SCALAR_INT, //INT,
     VEC2_INT,
     VEC3_INT,
     VEC4_INT
