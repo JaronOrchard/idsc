@@ -118,6 +118,17 @@ IndexedFaceSet * IndexedFaceSet::load_from_obj(std::string file_name) {
                     indices.push_back(atoi(line.substr(start_ind, end_ind - start_ind).c_str()) - 1);
                     start_ind = end_ind + 1;
                 }
+                // support quad faces
+                if (start_ind < line.size()) {
+                    unsigned int end_ind = start_ind;
+                    while (end_ind != line.size() && line.at(end_ind) != ' ') {
+                        end_ind++;
+                    }
+                    int quad_start = indices.size() - 3;
+                    indices.push_back(indices[quad_start]);
+                    indices.push_back(indices[quad_start + 2]);
+                    indices.push_back(atoi(line.substr(start_ind, end_ind - start_ind).c_str()) - 1);
+                }
                 break;
             default:
                 break;

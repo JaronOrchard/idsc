@@ -50,10 +50,11 @@ int main() {
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glDepthFunc(GL_LESS);
+    glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     printf("Loading basic mesh...\n");
-    IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/cube.obj");
+    IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/teapot_body.obj");
 
     printf("Generating tet mesh...\n");
     tetgenio * in = IndexedFaceSet::to_tetgenio(*mesh);
@@ -72,7 +73,8 @@ int main() {
     tetmesh->bind_attributes(renderable);
     check_gl_error();
 
-    glm::mat4 model_transform = glm::mat4();
+    glm::mat4 model_transform = glm::scale(glm::mat4(), glm::vec3(0.05f, 0.05f, 0.05f));
+    // glm::mat4 model_transform = glm::mat4();
     glm::vec3 eye = glm::vec3(2, 2, 6);
     glm::vec3 focus = glm::vec3(0, 1, 0);
     glm::vec3 up = glm::vec3(0, 1, 0);
@@ -100,9 +102,9 @@ int main() {
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        check_gl_error();
-
-        renderable.render();
+        if (window.isOpen()) {
+            renderable.render();
+        }
         check_gl_error();
 
         while (window.pollEvent(event)) {
