@@ -8,6 +8,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 #include <iostream>
 
 #include "IndexedFaceSet.h"
@@ -20,6 +21,7 @@
 #define WINDOW_HEIGHT 810
 #define FOV 45.0f
 #define FRAME_RATE 60
+#define PI 3.14159f
 
 int main() {
 
@@ -28,7 +30,7 @@ int main() {
     settings.antialiasingLevel = 8;
     settings.majorVersion = 3;
     settings.minorVersion = 2;
-    sf::Window window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Cloth Simulation", sf::Style::Default, settings);
+    sf::Window window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "DSC Demo", sf::Style::Default, settings);
 
     printf("Initializing OpenGL...\n");
     glewExperimental = GL_TRUE;
@@ -43,25 +45,26 @@ int main() {
     glBindVertexArray(vao);
 
     glClearColor(0.0f, 0.2f, 0.0f, 0.0f);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
+    // tetgen turns faces CW
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glDepthFunc(GL_LESS);
+    glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     printf("Loading basic mesh...\n");
-    // IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/cube.obj");
-    tetgenio in;
-    in.load_poly("assets/models/example");
+    IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/teapot_body.obj");
 
     printf("Generating tet mesh...\n");
-    // tetgenio * in = IndexedFaceSet::to_tetgenio(*mesh);
-    // delete mesh;
+    tetgenio * in = IndexedFaceSet::to_tetgenio(*mesh);
+    delete mesh;
     tetgenio out;
     tetgenbehavior switches;
-    switches.parse_commandline("");
-    tetrahedralize(&switches, &in, &out);
-    IndexedFaceSet * tetmesh = IndexedFaceSet::from_tetgenio(out);
+    switches.parse_commandline("pq");
+    tetrahedralize(&switches, in, &out);
+    delete in;
+    IndexedFaceSet * tetmesh = IndexedFaceSet::tet_mesh_from_tetgenio(out);
 
     printf("Initializing display...\n");
     Shader * shader = Shader::compile_from("shaders/wire.vsh", "shaders/wire.gsh", "shaders/wire.fsh");
@@ -70,8 +73,12 @@ int main() {
     tetmesh->bind_attributes(renderable);
     check_gl_error();
 
-    glm::mat4 model_transform = glm::mat4();
-    glm::mat4 view_transform = glm::lookAt(glm::vec3(10, 30, 30), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+    glm::mat4 model_transform = glm::scale(glm::mat4(), glm::vec3(0.05f, 0.05f, 0.05f));
+    // glm::mat4 model_transform = glm::mat4();
+    glm::vec3 eye = glm::vec3(2, 2, 6);
+    glm::vec3 focus = glm::vec3(0, 1, 0);
+    glm::vec3 up = glm::vec3(0, 1, 0);
+    glm::mat4 view_transform = glm::lookAt(eye, focus, up);
     glm::mat4 perspective_transform = glm::perspective(FOV, ((float) WINDOW_WIDTH) / WINDOW_HEIGHT, 0.1f, 100.0f);
     glm::mat4 MVP = perspective_transform * view_transform * model_transform;
     renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
@@ -81,16 +88,23 @@ int main() {
     sf::Event event;
     sf::Clock clock;
     while (window.isOpen()) {
-        window.display();
-
-        sf::sleep(sf::seconds(1.0f / FRAME_RATE));
-
         // float frame_length = clock.restart().asSeconds();
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+            eye = glm::rotate(eye, 5 * PI / 180, up);
+            view_transform = glm::lookAt(eye, focus, up);
+            MVP = perspective_transform * view_transform * model_transform;
+            renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+            eye = glm::rotate(eye, -5 * PI / 180, up);
+            view_transform = glm::lookAt(eye, focus, up);
+            MVP = perspective_transform * view_transform * model_transform;
+            renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
+        }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        check_gl_error();
-
-        renderable.render();
+        if (window.isOpen()) {
+            renderable.render();
+        }
         check_gl_error();
 
         while (window.pollEvent(event)) {
@@ -98,6 +112,11 @@ int main() {
                 printf("Closing window...\n");
                 window.close();
             }
+        }
+
+        if (window.isOpen()) {
+            window.display();
+            sf::sleep(sf::seconds(1.0f / FRAME_RATE));
         }
     }
 

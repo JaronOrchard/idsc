@@ -1,6 +1,6 @@
 #version 150
 const vec4 WIRE_COL = vec4(1.0,0.0,1.0,1.0);
-const vec4 FILL_COL = vec4(1.0,0.0,1.0,0.2);
+const vec4 FILL_COL = vec4(0.0,0.0,0.0,0.0);
 
 in vec3 n;
 noperspective in vec3 dist;
