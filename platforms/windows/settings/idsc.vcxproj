@@ -14,6 +14,7 @@
     <ProjectGuid>{59AD7C66-CA58-4C7A-A506-515D32F28C34}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>idsc</RootNamespace>
+    <ProjectName>windows_build</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
