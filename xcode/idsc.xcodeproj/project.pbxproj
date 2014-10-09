@@ -11,6 +11,7 @@
 		3E464CFA19DB3AFF0069D06E /* IndexedFaceSet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E464CF119DB3AFF0069D06E /* IndexedFaceSet.cpp */; };
 		3E464CFB19DB3AFF0069D06E /* Renderable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E464CF519DB3AFF0069D06E /* Renderable.cpp */; };
 		3E464CFC19DB3AFF0069D06E /* Shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3E464CF719DB3AFF0069D06E /* Shader.cpp */; };
+		3E8326CF19E6629F00350882 /* libGLEW.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E8326CE19E6629F00350882 /* libGLEW.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -40,6 +41,7 @@
 		3E464D0219DB3B190069D06E /* wire.fsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = wire.fsh; sourceTree = "<group>"; };
 		3E464D0319DB3B190069D06E /* wire.gsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = wire.gsh; sourceTree = "<group>"; };
 		3E464D0419DB3B190069D06E /* wire.vsh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.glsl; path = wire.vsh; sourceTree = "<group>"; };
+		3E8326CE19E6629F00350882 /* libGLEW.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libGLEW.dylib; path = ../../../../../../usr/local/Cellar/glew/1.11.0/lib/libGLEW.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3E8326CF19E6629F00350882 /* libGLEW.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,6 +59,7 @@
 		3E10A2E819DB3A4200D5FF26 = {
 			isa = PBXGroup;
 			children = (
+				3E8326CE19E6629F00350882 /* libGLEW.dylib */,
 				3E464CFD19DB3B190069D06E /* assets */,
 				3E464D0119DB3B190069D06E /* shaders */,
 				3E464CEE19DB3AFF0069D06E /* src */,
@@ -269,6 +273,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/mnaumov/Downloads/ShaderDemo/lib/Release,
+					/usr/local/Cellar/glew/1.11.0/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -280,6 +285,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/mnaumov/Downloads/ShaderDemo/lib/Release,
+					/usr/local/Cellar/glew/1.11.0/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
