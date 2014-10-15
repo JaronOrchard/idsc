@@ -20,7 +20,7 @@ TetMesh::~TetMesh() {
     if (tets) { delete [] tets; }
 }
 
-// assumes interface will not evolve beyod [-10, 10]^3 and contains the point 0, 0, 0
+// assumes interface will not evolve beyod [-10, 10]^3 and encloses the point (0, 0, 0)
 TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     tetgenio * inner_input = IndexedFaceSet::to_tetgenio(ifs);
 
@@ -86,6 +86,7 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     delete outer_input->facetlist;
     outer_input->facetlist = new_facets;
 
+    // add hole at (0, 0, 0)
     outer_input->numberofholes = 1;
     outer_input->holelist = new REAL[3];
     outer_input->holelist[0] = 0;
@@ -134,18 +135,22 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     int num_t = outer_output.numberoftetrahedra + inner_num_t;
     int * tetrahedra = new int[num_t * 4];
     for (int i = 0; i < inner_num_t; i++) {
-        tetrahedra[i * 4] = inner_output.tetrahedronlist[i * 4];
-        tetrahedra[i * 4 + 1] = inner_output.tetrahedronlist[i * 4 + 1];
-        tetrahedra[i * 4 + 2] = inner_output.tetrahedronlist[i * 4 + 2];
-        tetrahedra[i * 4 + 3] = inner_output.tetrahedronlist[i * 4 + 3];
+        for (int j = 0; j < 4; j++) {
+            tetrahedra[i * 4 + j] = inner_output.tetrahedronlist[i * 4 + j];
+        }
     }
 
     for (int i = 0; i < outer_output.numberoftetrahedra; i++) {
-        tetrahedra[(i + inner_num_t) * 4] = outer_output.tetrahedronlist[i * 4];
-        tetrahedra[(i + inner_num_t) * 4 + 1] = outer_output.tetrahedronlist[i * 4 + 1];
-        tetrahedra[(i + inner_num_t) * 4 + 2] = outer_output.tetrahedronlist[i * 4 + 2];
-        tetrahedra[(i + inner_num_t) * 4 + 3] = outer_output.tetrahedronlist[i * 4 + 3];
+        for (int j = 0; j < 4; j++) {
+            tetrahedra[(i + inner_num_t) * 4 + j] = outer_output.tetrahedronlist[i * 4 + j];
+            if (outer_output.tetrahedronlist[i * 4 + j] > orig_num_v) {
+                tetrahedra[(i + inner_num_t) * 4 + j] += inner_num_v;
+            }
+        }
     }
+
+    delete inner_input;
+    delete outer_input;
 
     return new TetMesh(num_v, vertices, statuses, velocities, num_t, tetrahedra);
 }
