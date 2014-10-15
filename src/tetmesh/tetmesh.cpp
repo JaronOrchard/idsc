@@ -51,7 +51,7 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     delete outer_input->pointlist;
     outer_input->pointlist = new_vertices;
 
-    //add outter cube faces
+    //add outer cube faces
     int orig_num_f = outer_input->numberoffacets;
     outer_input->numberoffacets += 6;
     tetgenio::facet * new_facets = new tetgenio::facet[outer_input->numberoffacets];
@@ -128,7 +128,7 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
         vertices[(i + inner_num_v) * 3] = outer_output.pointlist[i * 3];
         vertices[(i + inner_num_v) * 3 + 1] = outer_output.pointlist[i * 3 + 1];
         vertices[(i + inner_num_v) * 3 + 2] = outer_output.pointlist[i * 3 + 2];
-        statuses[i] = 1;
+        statuses[i + inner_num_v] = 1;
     }
 
     int inner_num_t = inner_output.numberoftetrahedra;
@@ -143,18 +143,11 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     for (int i = 0; i < outer_output.numberoftetrahedra; i++) {
         for (int j = 0; j < 4; j++) {
             tetrahedra[(i + inner_num_t) * 4 + j] = outer_output.tetrahedronlist[i * 4 + j];
-            if (outer_output.tetrahedronlist[i * 4 + j] > orig_num_v) {
+            if (outer_output.tetrahedronlist[i * 4 + j] >= orig_num_v) {
                 tetrahedra[(i + inner_num_t) * 4 + j] += inner_num_v;
             }
         }
     }
-
-	outer_output.save_nodes("outer1");
-	outer_output.save_elements("outer1");
-	outer_output.save_faces("outer1");
-	inner_output.save_nodes("inner1");
-	inner_output.save_elements("inner1");
-	inner_output.save_faces("inner1");
 
     delete inner_input;
     delete outer_input;
@@ -212,10 +205,10 @@ short TetMesh::getFaceBoundaryMarker(int vertex1, int vertex2, int vertex3) {
 	short marker2 = vertex_statuses[vertex2];
 	short marker3 = vertex_statuses[vertex3];
 	if (marker1 == 0 || marker2 == 0 || marker3 == 0) {
-		return 0;
+		return 0; // Tet is inside
 	} else if (marker1 == 1 || marker2 == 1 || marker3 == 1) {
-		return 1;
+		return 1; // Tet is outside
 	} else {
-		return 2;
+		return 2; // Tet is on the boundary
 	}
 }
