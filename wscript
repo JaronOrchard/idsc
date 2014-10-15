@@ -200,7 +200,9 @@ def build(ctx):
         'src/render/Shader.cpp',
         'src/render/Renderable.cpp',
 
-        'src/model/IndexedFaceSet.cpp'
+        'src/model/IndexedFaceSet.cpp',
+
+        'src/tetmesh/tetmesh.cpp'
     ]
     ctx.program(
         source       = ' '.join(src_files),

@@ -2,6 +2,7 @@
 #include "Renderable.h"
 
 #include <string.h>
+#include <utility>
 #include "render_utils.h"
 
 Renderable::Renderable(Shader * shader, bool is_indexed, bool is_instanced, GLenum draw_mode) {
@@ -97,7 +98,7 @@ void Renderable::bind_uniform(float * buffer, uniform_data_t type, int count, ch
             type,
             count
         };
-		uniforms.insert(std::make_pair<std::string, model_uniform_t>(uniform_name, uniform));
+		uniforms.insert(std::pair<std::string, model_uniform_t>(uniform_name, uniform));
     } else {
         model_uniform_t uniform = uniforms.at(uniform_name);
         if (uniform.type != type || uniform.count != count) {

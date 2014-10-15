@@ -16,7 +16,7 @@
 #include "Shader.h"
 #include "Renderable.h"
 #include "render_utils.h"
-#include "tetmesh.h"
+#include "tetmesh/tetmesh.h"
 
 #define WINDOW_WIDTH 1440
 #define WINDOW_HEIGHT 810
@@ -55,27 +55,26 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     printf("Loading basic mesh...\n");
-    IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/teapot_body.obj");
+    IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
 
     printf("Generating tet mesh...\n");
-    tetgenio * in = IndexedFaceSet::to_tetgenio(*mesh);
-    delete mesh;
-    tetgenio out;
-    tetgenbehavior switches;
-    switches.parse_commandline("pq");
-    tetrahedralize(&switches, in, &out);
-    delete in;
-    IndexedFaceSet * tetmesh = IndexedFaceSet::tet_mesh_from_tetgenio(out);
+    TetMesh * tet_mesh = TetMesh::from_indexed_face_set(*mesh);
+
+    printf("Saving mesh to output/ ...\n");
+    tet_mesh->save("output/sphere");
+    delete tet_mesh;
+
+    printf("Displaying original mesh...\n");
 
     printf("Initializing display...\n");
     Shader * shader = Shader::compile_from("shaders/wire.vsh", "shaders/wire.gsh", "shaders/wire.fsh");
     glUseProgram(shader->get_id());
     Renderable renderable(shader, true, false, GL_TRIANGLES);
-    tetmesh->bind_attributes(renderable);
+    mesh->bind_attributes(renderable);
     check_gl_error();
 
-    glm::mat4 model_transform = glm::scale(glm::mat4(), glm::vec3(0.05f, 0.05f, 0.05f));
-    // glm::mat4 model_transform = glm::mat4();
+    // glm::mat4 model_transform = glm::scale(glm::mat4(), glm::vec3(0.05f, 0.05f, 0.05f));
+    glm::mat4 model_transform = glm::mat4();
     glm::vec3 eye = glm::vec3(2, 2, 6);
     glm::vec3 focus = glm::vec3(0, 1, 0);
     glm::vec3 up = glm::vec3(0, 1, 0);
@@ -121,12 +120,9 @@ int main() {
         }
     }
 
-	//TetMesh * tetMesh2 = TetMesh::get_from_tba();
-	//tetMesh2->save("test1");
-
     printf("Cleaning up...\n");
     delete shader;
-    delete tetmesh;
+    delete mesh;
 
     return 0;
 }
