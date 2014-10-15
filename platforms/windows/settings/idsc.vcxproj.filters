@@ -19,6 +19,9 @@
     <Filter Include="model">
       <UniqueIdentifier>{31b0d29c-a859-49e1-99d3-5996b745498f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="tetmesh">
+      <UniqueIdentifier>{4abfe97f-1624-4779-8900-6762bb34fb09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\main.cpp">
@@ -33,6 +36,9 @@
     <ClCompile Include="..\..\..\src\render\Shader.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\tetmesh\tetmesh.cpp">
+      <Filter>tetmesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\model\IndexedFaceSet.h">
@@ -46,6 +52,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\render\Shader.h">
       <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\tetmesh\tetmesh.h">
+      <Filter>tetmesh</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

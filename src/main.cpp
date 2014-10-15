@@ -16,6 +16,7 @@
 #include "Shader.h"
 #include "Renderable.h"
 #include "render_utils.h"
+#include "tetmesh.h"
 
 #define WINDOW_WIDTH 1440
 #define WINDOW_HEIGHT 810
@@ -119,6 +120,9 @@ int main() {
             sf::sleep(sf::seconds(1.0f / FRAME_RATE));
         }
     }
+
+	//TetMesh * tetMesh2 = TetMesh::get_from_tba();
+	//tetMesh2->save("test1");
 
     printf("Cleaning up...\n");
     delete shader;
