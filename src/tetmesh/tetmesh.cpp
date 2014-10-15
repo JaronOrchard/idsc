@@ -149,6 +149,13 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
         }
     }
 
+	outer_output.save_nodes("outer1");
+	outer_output.save_elements("outer1");
+	outer_output.save_faces("outer1");
+	inner_output.save_nodes("inner1");
+	inner_output.save_elements("inner1");
+	inner_output.save_faces("inner1");
+
     delete inner_input;
     delete outer_input;
 
@@ -162,7 +169,10 @@ void TetMesh::save(std::string object_name) {
         std::cout << "Could not open " << object_name << ".node for writing!" << std::endl;
         return;
     }
-    // === OUTPUT .NODE CONTENTS HERE
+	fout_node << num_vertices << "  3  0  0" << std::endl;
+    for (int i = 0; i < num_vertices; i++) {
+		fout_node << i << "  " << vertices[i*3] << "  " << vertices[i*3+1] << "  " << vertices[i*3+2] << std::endl;
+	}
     fout_node.close();
     std::cout << object_name << ".node saved successfully." << std::endl;
         
@@ -172,7 +182,10 @@ void TetMesh::save(std::string object_name) {
         std::cout << "Could not open " << object_name << ".ele for writing!" << std::endl;
         return;
     }
-    // === OUTPUT .ELE CONTENTS HERE
+    fout_ele << num_tets << "  4  0" << std::endl;
+	for (int i = 0; i < num_tets; i++) {
+		fout_ele << i << "  " << tets[i*4] << "  " << tets[i*4+1] << "  " << tets[i*4+2] << "  " << tets[i*4+3] << std::endl;
+	}
     fout_ele.close();
     std::cout << object_name << ".ele saved successfully." << std::endl;
     
@@ -182,9 +195,27 @@ void TetMesh::save(std::string object_name) {
         std::cout << "Could not open " << object_name << ".face for writing!" << std::endl;
         return;
     }
-    // === OUTPUT .FACE CONTENTS HERE
+    fout_face << (num_tets*4) << "  1" << std::endl;
+	for (int i = 0; i < num_tets; i++) {
+		fout_face << (i*4) << "  " << tets[i*4] << "  " << tets[i*4+1] << "  " << tets[i*4+2] << "  " << getFaceBoundaryMarker(tets[i*4], tets[i*4+1], tets[i*4+2]) << std::endl;
+		fout_face << (i*4+1) << "  " << tets[i*4] << "  " << tets[i*4+1] << "  " << tets[i*4+3] << "  " << getFaceBoundaryMarker(tets[i*4], tets[i*4+1], tets[i*4+3]) << std::endl;
+		fout_face << (i*4+2) << "  " << tets[i*4] << "  " << tets[i*4+2] << "  " << tets[i*4+3] << "  " << getFaceBoundaryMarker(tets[i*4], tets[i*4+2], tets[i*4+3]) << std::endl;
+		fout_face << (i*4+3) << "  " << tets[i*4+1] << "  " << tets[i*4+2] << "  " << tets[i*4+3] << "  " << getFaceBoundaryMarker(tets[i*4+1], tets[i*4+2], tets[i*4+3]) << std::endl;
+	}
     fout_face.close();
     std::cout << object_name << ".face saved successfully." << std::endl;
     
 }
 
+short TetMesh::getFaceBoundaryMarker(int vertex1, int vertex2, int vertex3) {
+	short marker1 = vertex_statuses[vertex1];
+	short marker2 = vertex_statuses[vertex2];
+	short marker3 = vertex_statuses[vertex3];
+	if (marker1 == 0 || marker2 == 0 || marker3 == 0) {
+		return 0;
+	} else if (marker1 == 1 || marker2 == 1 || marker3 == 1) {
+		return 1;
+	} else {
+		return 2;
+	}
+}

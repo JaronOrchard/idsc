@@ -29,6 +29,7 @@ private:
     
     TetMesh(int num_vertices, REAL * vertices, short * vertex_statuses,
             REAL * vertex_velocities, int num_tets, int * tets);
+	short getFaceBoundaryMarker(int vertex1, int vertex2, int vertex3);
 
 };
 
