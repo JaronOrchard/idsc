@@ -3,12 +3,25 @@
 #include <fstream>
 #include <iostream>
 
+// threshold for determining geometric equality
+#define EPSILON 0.0001
+
+#define vec_subtract(dest, a, b) (dest)[0] = (a)[0] - (b)[0]; (dest)[1] = (a)[1] - (b)[1]; (dest)[2] = (a)[2] - (b)[2]
+#define vec_dot(a, b) ((a)[0] * (b)[0] + (a)[1] * (b)[1] + (a)[2] * (b)[2])
+#define vec_cross(dest, a, b) (dest)[0] = (a)[1] * (b)[2] - (a)[2] * (b)[1]; (dest)[1] = (a)[2] * (b)[0] - (a)[0] * (b)[2]; (dest)[2] = (a)[0] * (b)[1] - (a)[1] * (b)[0]
+#define vec_sqr_length(a) vec_dot(a, a)
+#define vec_length(a) (sqrt(vec_sqr_length(a)))
+#define vec_scale(dest, a, s) (dest)[0] = (a)[0] * s; (dest)[1] = (a)[1] * s; (dest)[2] = (a)[2] * s
+#define vec_divide(dest, a, d) (dest)[0] = (a)[0] / d; (dest)[1] = (a)[1] / d; (dest)[2] = (a)[2] / d
+
+#define absolute(a) (a < 0 ? -a : a)
+
 TetMesh::TetMesh(int num_vertices, REAL * vertices, short * vertex_statuses,
-            REAL * vertex_velocities, int num_tets, int * tets) {
+            REAL * vertex_targets, int num_tets, int * tets) {
     this->num_vertices = num_vertices;
     this->vertices = vertices;
     this->vertex_statuses = vertex_statuses;
-    this->vertex_velocities = vertex_velocities;
+    this->vertex_targets = vertex_targets;
     this->num_tets = num_tets;
     this->tets = tets;
 }
@@ -16,7 +29,7 @@ TetMesh::TetMesh(int num_vertices, REAL * vertices, short * vertex_statuses,
 TetMesh::~TetMesh() {
     if (vertices) { delete [] vertices; }
     if (vertex_statuses) { delete [] vertex_statuses; }
-    if (vertex_velocities) { delete [] vertex_velocities; }
+    if (vertex_targets) { delete [] vertex_targets; }
     if (tets) { delete [] tets; }
 }
 
@@ -33,6 +46,7 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
         new_vertices[i] = outer_input->pointlist[i];
     }
 
+    // TODO: for robustness, generate size based on bounding sphere
     static const REAL cube_corners[] = {
         10, 10, 10,
         10, 10, -10,
@@ -105,12 +119,8 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
 
     int num_v = orig_num_v + outer_num_v + inner_num_v;
     REAL * vertices = new REAL[num_v * 3];
-    REAL * velocities = new REAL[num_v * 3];
+    REAL * targets = new REAL[num_v * 3];
     short * statuses = new short[num_v];
-
-    for (int i = 0; i < num_v * 3; i++) {
-        velocities[i] = 0;
-    }
 
     for (int i = 0; i < orig_num_v; i++) {
         vertices[i * 3] = inner_output.pointlist[i * 3];
@@ -129,6 +139,10 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
         vertices[(i + inner_num_v) * 3 + 1] = outer_output.pointlist[i * 3 + 1];
         vertices[(i + inner_num_v) * 3 + 2] = outer_output.pointlist[i * 3 + 2];
         statuses[i + inner_num_v] = 1;
+    }
+
+    for (int i = 0; i < num_v * 3; i++) {
+        targets[i] = vertices[i];
     }
 
     int inner_num_t = inner_output.numberoftetrahedra;
@@ -152,7 +166,7 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     delete inner_input;
     delete outer_input;
 
-    return new TetMesh(num_v, vertices, statuses, velocities, num_t, tetrahedra);
+    return new TetMesh(num_v, vertices, statuses, targets, num_t, tetrahedra);
 }
 
 void TetMesh::save(std::string object_name) {
@@ -162,10 +176,10 @@ void TetMesh::save(std::string object_name) {
         std::cout << "Could not open " << object_name << ".node for writing!" << std::endl;
         return;
     }
-	fout_node << num_vertices << "  3  0  0" << std::endl;
+    fout_node << num_vertices << "  3  0  0" << std::endl;
     for (int i = 0; i < num_vertices; i++) {
-		fout_node << i << "  " << vertices[i*3] << "  " << vertices[i*3+1] << "  " << vertices[i*3+2] << std::endl;
-	}
+        fout_node << i << "  " << vertices[i*3] << "  " << vertices[i*3+1] << "  " << vertices[i*3+2] << std::endl;
+    }
     fout_node.close();
     std::cout << object_name << ".node saved successfully." << std::endl;
         
@@ -176,9 +190,9 @@ void TetMesh::save(std::string object_name) {
         return;
     }
     fout_ele << num_tets << "  4  0" << std::endl;
-	for (int i = 0; i < num_tets; i++) {
-		fout_ele << i << "  " << tets[i*4] << "  " << tets[i*4+1] << "  " << tets[i*4+2] << "  " << tets[i*4+3] << std::endl;
-	}
+    for (int i = 0; i < num_tets; i++) {
+        fout_ele << i << "  " << tets[i*4] << "  " << tets[i*4+1] << "  " << tets[i*4+2] << "  " << tets[i*4+3] << std::endl;
+    }
     fout_ele.close();
     std::cout << object_name << ".ele saved successfully." << std::endl;
     
@@ -189,26 +203,129 @@ void TetMesh::save(std::string object_name) {
         return;
     }
     fout_face << (num_tets*4) << "  1" << std::endl;
-	for (int i = 0; i < num_tets; i++) {
-		fout_face << (i*4) << "  " << tets[i*4] << "  " << tets[i*4+1] << "  " << tets[i*4+2] << "  " << getFaceBoundaryMarker(tets[i*4], tets[i*4+1], tets[i*4+2]) << std::endl;
-		fout_face << (i*4+1) << "  " << tets[i*4] << "  " << tets[i*4+1] << "  " << tets[i*4+3] << "  " << getFaceBoundaryMarker(tets[i*4], tets[i*4+1], tets[i*4+3]) << std::endl;
-		fout_face << (i*4+2) << "  " << tets[i*4] << "  " << tets[i*4+2] << "  " << tets[i*4+3] << "  " << getFaceBoundaryMarker(tets[i*4], tets[i*4+2], tets[i*4+3]) << std::endl;
-		fout_face << (i*4+3) << "  " << tets[i*4+1] << "  " << tets[i*4+2] << "  " << tets[i*4+3] << "  " << getFaceBoundaryMarker(tets[i*4+1], tets[i*4+2], tets[i*4+3]) << std::endl;
-	}
+    for (int i = 0; i < num_tets; i++) {
+        fout_face << (i*4) << "  " << tets[i*4] << "  " << tets[i*4+1] << "  " << tets[i*4+2] << "  " << get_face_boundary_marker(tets[i*4], tets[i*4+1], tets[i*4+2]) << std::endl;
+        fout_face << (i*4+1) << "  " << tets[i*4] << "  " << tets[i*4+1] << "  " << tets[i*4+3] << "  " << get_face_boundary_marker(tets[i*4], tets[i*4+1], tets[i*4+3]) << std::endl;
+        fout_face << (i*4+2) << "  " << tets[i*4] << "  " << tets[i*4+2] << "  " << tets[i*4+3] << "  " << get_face_boundary_marker(tets[i*4], tets[i*4+2], tets[i*4+3]) << std::endl;
+        fout_face << (i*4+3) << "  " << tets[i*4+1] << "  " << tets[i*4+2] << "  " << tets[i*4+3] << "  " << get_face_boundary_marker(tets[i*4+1], tets[i*4+2], tets[i*4+3]) << std::endl;
+    }
     fout_face.close();
     std::cout << object_name << ".face saved successfully." << std::endl;
     
 }
 
-short TetMesh::getFaceBoundaryMarker(int vertex1, int vertex2, int vertex3) {
-	short marker1 = vertex_statuses[vertex1];
-	short marker2 = vertex_statuses[vertex2];
-	short marker3 = vertex_statuses[vertex3];
-	if (marker1 == 0 || marker2 == 0 || marker3 == 0) {
-		return 0; // Tet is inside
-	} else if (marker1 == 1 || marker2 == 1 || marker3 == 1) {
-		return 1; // Tet is outside
-	} else {
-		return 2; // Tet is on the boundary
-	}
+short TetMesh::get_face_boundary_marker(int vertex1, int vertex2, int vertex3) {
+    short marker1 = vertex_statuses[vertex1];
+    short marker2 = vertex_statuses[vertex2];
+    short marker3 = vertex_statuses[vertex3];
+    if (marker1 == 0 || marker2 == 0 || marker3 == 0) {
+        return 0; // Tet is inside
+    } else if (marker1 == 1 || marker2 == 1 || marker3 == 1) {
+        return 1; // Tet is outside
+    } else {
+        return 2; // Tet is on the boundary
+    }
+}
+
+void TetMesh::evolve() {
+    bool done = false;
+    while (!done) {
+        done = advect();
+        retesselate();
+    }
+}
+
+// move vertices as far toward target as possible
+bool TetMesh::advect() {
+    static REAL velocity[] = {
+        0, 0, 0
+    };
+    int num_vertices_at_target = 0;
+    for (int i = 0; i < num_vertices; i++) {
+        vec_subtract(velocity, vertex_targets + i * 3, vertices + i * 3);
+        // TODO: for performance, can keep flag of whether at target and calculate this in else
+        REAL target_distance = vec_length(velocity);
+        // this vertex is already moved
+        if (target_distance < EPSILON) {
+            num_vertices_at_target++;
+        } else {
+            // normalize velocity
+            vec_divide(velocity, velocity, target_distance);
+            REAL distance_movable = get_distance_movable(i, velocity);
+            if (distance_movable < EPSILON) {
+                std::cout << "warning: unable to move vertex " << i << ", exitting to avoid an infinite loop" << std::endl;
+                return true;
+            } else if (distance_movable >= target_distance) {
+                memcpy(vertices + i * 3, vertex_targets + i * 3, 3 * sizeof(REAL));
+            } else {
+                vec_scale(velocity, velocity, distance_movable);
+                vertices[i * 3] += velocity[i * 3];
+                vertices[i * 3 + 1] += velocity[i * 3 + 1];
+                vertices[i * 3 + 2] += velocity[i * 3 + 2];
+            }
+        }
+    }
+    return num_vertices_at_target == num_vertices;
+}
+
+REAL TetMesh::get_distance_movable(int vertex_index, REAL * velocity) {
+    static REAL plane[] = {
+        0, 0, 0, 0
+    };
+    REAL min_distance = -1;
+    // TODO: for performance, can make inverted index so vertices know about tets they're in
+    for (int i = 0; i < num_tets; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (tets[i * 4 + j] == vertex_index) {
+                // TODO: clean this up
+                switch (j) {
+                    case 0:
+                        calculate_plane(plane, vertices + tets[i * 4 + 1] * 3, vertices + tets[i * 4 + 2] * 3, vertices + tets[i * 4 + 3] * 3);
+                        break;
+                    case 1:
+                        calculate_plane(plane, vertices + tets[i * 4 + 0] * 3, vertices + tets[i * 4 + 2] * 3, vertices + tets[i * 4 + 3] * 3);
+                        break;
+                    case 2:
+                        calculate_plane(plane, vertices + tets[i * 4 + 0] * 3, vertices + tets[i * 4 + 1] * 3, vertices + tets[i * 4 + 3] * 3);
+                        break;
+                    case 3:
+                        calculate_plane(plane, vertices + tets[i * 4 + 0] * 3, vertices + tets[i * 4 + 1] * 3, vertices + tets[i * 4 + 2] * 3);
+                        break;
+                }
+                REAL distance = intersect_plane(plane, vertices + vertex_index * 3, velocity);
+                if (distance > 0 && (distance < min_distance || min_distance == -1)) {
+                    min_distance = distance;
+                }
+            }
+            break;
+        }
+    }
+    return min_distance;
+}
+
+void TetMesh::calculate_plane(REAL * plane, REAL * v1, REAL * v2, REAL * v3) {
+    static REAL temp1[] = {
+        0, 0, 0
+    };
+    static REAL temp2[] = {
+        0, 0, 0
+    };
+    vec_subtract(temp1, v1, v3);
+    vec_subtract(temp2, v2, v3);
+    vec_cross(plane, temp1, temp2);
+    vec_divide(plane, plane, vec_length(plane));
+    plane[3] = -vec_dot(plane, v3);
+}
+
+REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
+    REAL denominator = vec_dot(velocity, plane);
+    // ray perpendicular to plane
+    if (absolute(denominator) < EPSILON) {
+        return -1;
+    }
+    return (vec_dot(vertex, plane) + plane[3]) / denominator;
+}
+
+void TetMesh::retesselate() {
+    //TODO
 }

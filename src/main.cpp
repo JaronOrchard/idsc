@@ -62,6 +62,16 @@ int main() {
 
     printf("Saving mesh to output/ ...\n");
     tet_mesh->save("output/sphere");
+
+    printf("Evolving tet mesh...\n");
+    for (int i = 0; i < tet_mesh->num_vertices; i++) {
+        if (tet_mesh->vertex_statuses[i] == 2) {
+            // scale and translate x
+            tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.001;
+        }
+    }
+    tet_mesh->evolve();
+    tet_mesh->save("output/evolved_sphere");
     delete tet_mesh;
 
     printf("Displaying original mesh...\n");
