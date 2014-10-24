@@ -339,7 +339,7 @@ void TetMesh::bind_attributes(Renderable & renderable) {
     renderable.bind_attribute(verts, VEC3_FLOAT, num_vertices, "vertex_position");
     free(verts);
 
-    renderable.bind_attribute(vertex_statuses, SCALAR_INT, num_vertices, "vertex_status");
+    renderable.bind_attribute(vertex_statuses, SCALAR_SHORT, num_vertices, "vertex_status");
 
     int num_faces = num_tets * 4;
     int num_indices = num_faces * 3;

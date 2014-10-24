@@ -52,6 +52,8 @@ GLenum Renderable::get_gl_enum(uniform_data_t type) {
         case MAT3_FLOAT:
         case MAT4_FLOAT:
             return GL_FLOAT;
+        case SCALAR_SHORT:
+            return GL_SHORT;
         case SCALAR_INT:
         case VEC2_INT:
         case VEC3_INT:
@@ -61,7 +63,7 @@ GLenum Renderable::get_gl_enum(uniform_data_t type) {
     }
 }
 
-GLenum Renderable::get_base_size(uniform_data_t type) {
+int Renderable::get_base_size(uniform_data_t type) {
     switch (type) {
         case SCALAR_FLOAT:
         case VEC2_FLOAT:
@@ -70,6 +72,8 @@ GLenum Renderable::get_base_size(uniform_data_t type) {
         case MAT3_FLOAT:
         case MAT4_FLOAT:
             return sizeof(GLfloat);
+        case SCALAR_SHORT:
+            return sizeof(GLshort);
         case SCALAR_INT:
         case VEC2_INT:
         case VEC3_INT:
@@ -219,6 +223,9 @@ void Renderable::render() {
                 break;
             case VEC4_INT:
                 glUniform4iv(u.location, u.count, (GLint *) u.data);
+                break;
+            default:
+                fprintf(stderr, "this type is unsupported for uniforms\n");
                 break;
         }
     }

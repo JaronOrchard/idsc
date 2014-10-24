@@ -21,7 +21,8 @@ typedef enum {
     SCALAR_INT, //INT,
     VEC2_INT,
     VEC3_INT,
-    VEC4_INT
+    VEC4_INT,
+    SCALAR_SHORT
 } uniform_data_t;
 
 typedef struct _model_attribute_t {
@@ -50,7 +51,7 @@ class Renderable {
         Renderable(Shader * shader, bool is_indexed, bool is_instanced, GLenum draw_mode);
         int get_num_channels(uniform_data_t type);
         GLenum get_gl_enum(uniform_data_t type);
-        GLenum get_base_size(uniform_data_t type);
+        int get_base_size(uniform_data_t type);
         void bind_attribute(void * buffer, uniform_data_t type, int count, char * attribute_name);
         void bind_indices(int * buffer, int size);
         void bind_uniform(void * buffer, uniform_data_t type, int count, char * uniform_name);
