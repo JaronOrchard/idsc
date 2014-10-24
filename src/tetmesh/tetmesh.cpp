@@ -329,3 +329,41 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 void TetMesh::retesselate() {
     //TODO
 }
+
+void TetMesh::bind_attributes(Renderable & renderable) {
+    // ensure vertices are not double precision
+    float * verts = new float[num_vertices * 3];
+    for (int i = 0; i < num_vertices * 3; i++) {
+        verts[i] = vertices[i];
+    }
+    renderable.bind_attribute(verts, VEC3_FLOAT, num_vertices, "vertex_position");
+    free(verts);
+
+    renderable.bind_attribute(vertex_statuses, SCALAR_INT, num_vertices, "vertex_status");
+
+    int num_faces = num_tets * 4;
+    int num_indices = num_faces * 3;
+    int * indices = new int[num_indices];
+
+    for (int i = 0; i < num_tets; i++) {
+        indices[i * 12] = tets[i * 4];
+        indices[i * 12 + 1] = tets[i * 4 + 1];
+        indices[i * 12 + 2] = tets[i * 4 + 2];
+
+        indices[i * 12 + 3] = tets[i * 4];
+        indices[i * 12 + 4] = tets[i * 4 + 1];
+        indices[i * 12 + 5] = tets[i * 4 + 3];
+
+        indices[i * 12 + 6] = tets[i * 4];
+        indices[i * 12 + 7] = tets[i * 4 + 2];
+        indices[i * 12 + 8] = tets[i * 4 + 3];
+
+        indices[i * 12 + 9] = tets[i * 4 + 1];
+        indices[i * 12 + 10] = tets[i * 4 + 2];
+        indices[i * 12 + 11] = tets[i * 4 + 3];
+    }
+
+    renderable.bind_indices(indices, num_indices * sizeof(int));
+    free(indices);
+}
+

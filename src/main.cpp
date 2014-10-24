@@ -45,7 +45,6 @@ int main() {
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    glClearColor(0.0f, 0.2f, 0.0f, 0.0f);
     // tetgen turns faces CW
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
@@ -59,6 +58,7 @@ int main() {
 
     printf("Generating tet mesh...\n");
     TetMesh * tet_mesh = TetMesh::from_indexed_face_set(*mesh);
+    delete mesh;
 
     printf("Saving mesh to output/ ...\n");
     tet_mesh->save("output/initial_sphere");
@@ -72,16 +72,16 @@ int main() {
     }
     tet_mesh->evolve();
     tet_mesh->save("output/evolved_sphere");
-    delete tet_mesh;
 
-    printf("Displaying original mesh...\n");
+    printf("Displaying tet mesh...\n");
 
     printf("Initializing display...\n");
-    Shader * shader = Shader::compile_from("shaders/wire.vsh", "shaders/wire.gsh", "shaders/wire.fsh");
+    Shader * shader = Shader::compile_from("shaders/dsc.vsh", "shaders/dsc.gsh", "shaders/dsc.fsh");
     glUseProgram(shader->get_id());
     Renderable renderable(shader, true, false, GL_TRIANGLES);
-    mesh->bind_attributes(renderable);
+    tet_mesh->bind_attributes(renderable);
     check_gl_error();
+    delete tet_mesh;
 
     // glm::mat4 model_transform = glm::scale(glm::mat4(), glm::vec3(0.05f, 0.05f, 0.05f));
     glm::mat4 model_transform = glm::mat4();
@@ -90,8 +90,10 @@ int main() {
     glm::vec3 up = glm::vec3(0, 1, 0);
     glm::mat4 view_transform = glm::lookAt(eye, focus, up);
     glm::mat4 perspective_transform = glm::perspective(FOV, ((float) WINDOW_WIDTH) / WINDOW_HEIGHT, 0.1f, 100.0f);
-    glm::mat4 MVP = perspective_transform * view_transform * model_transform;
-    renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
+    // glm::mat4 MVP = perspective_transform * view_transform * model_transform;
+    renderable.bind_uniform(&model_transform[0][0], MAT4_FLOAT, 1, "model_transform");
+    renderable.bind_uniform(&view_transform[0][0], MAT4_FLOAT, 1, "view_transform");
+    renderable.bind_uniform(&perspective_transform[0][0], MAT4_FLOAT, 1, "perspective_transform");
     check_gl_error();
 
     printf("Starting display...\n");
@@ -102,13 +104,11 @@ int main() {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
             eye = glm::rotate(eye, 5 * PI / 180, up);
             view_transform = glm::lookAt(eye, focus, up);
-            MVP = perspective_transform * view_transform * model_transform;
-            renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
+            renderable.bind_uniform(&view_transform[0][0], MAT4_FLOAT, 1, "view_transform");
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
             eye = glm::rotate(eye, -5 * PI / 180, up);
             view_transform = glm::lookAt(eye, focus, up);
-            MVP = perspective_transform * view_transform * model_transform;
-            renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
+            renderable.bind_uniform(&view_transform[0][0], MAT4_FLOAT, 1, "view_transform");
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -132,7 +132,6 @@ int main() {
 
     printf("Cleaning up...\n");
     delete shader;
-    delete mesh;
 
     return 0;
 }

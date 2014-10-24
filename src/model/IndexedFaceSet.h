@@ -16,7 +16,6 @@ class IndexedFaceSet {
                        int num_indices, int * indices);
         ~IndexedFaceSet();
         void bind_attributes(Renderable & renderable);
-        void bind_attributes_on_tetmesh(  Renderable & renderable,  TetMesh & tet );//, short *  vertex_statuses,   faces
         void update_attributes(Renderable & renderable);
     private:
         int num_vertices;

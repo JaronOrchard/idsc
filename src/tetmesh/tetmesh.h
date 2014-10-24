@@ -16,6 +16,8 @@ public:
     void save(std::string object_name);
     void evolve();
 
+    void bind_attributes(Renderable & renderable);
+
     ~TetMesh();
     
     int num_vertices;
