@@ -17,7 +17,7 @@ uniform vec3 STATUS_COLS[3] = {
 
 
 // This is copied from tetmesh.cpp
-float get_face_status() {
+int get_face_status() {
     if (vert_status[0] == 0 || vert_status[1] == 0 || vert_status[2] == 0) {
         return 0; // Tet is inside
     } else if (vert_status[0] == 1 || vert_status[1] == 1 || vert_status[2] == 1) {
@@ -28,7 +28,8 @@ float get_face_status() {
 }
 
 void main() {
-    // fragment_status = get_face_status();
+    // color = STATUS_COLS[get_face_status()];
+
     vec3 ab = vec3(gl_in[0].gl_Position - gl_in[1].gl_Position);
     vec3 ac = vec3(gl_in[0].gl_Position - gl_in[2].gl_Position);
     vec3 ba = vec3(gl_in[1].gl_Position - gl_in[0].gl_Position);
