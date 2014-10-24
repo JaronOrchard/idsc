@@ -3,10 +3,11 @@
 
 in vec3 vertex_position;
 in float vertex_status;
-uniform mat4 model_transform;
+uniform mat4 MVP;
 out int vert_status;
 
 void main() {
-    gl_Position = model_transform * vec4(vertex_position, 1.0);
+    gl_Position = MVP * vec4(vertex_position, 1.0);
+    gl_Position = gl_Position / gl_Position.w;
     vert_status = int(vertex_status);
 }

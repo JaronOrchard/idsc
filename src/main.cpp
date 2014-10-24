@@ -83,6 +83,8 @@ int main() {
     check_gl_error();
     delete tet_mesh;
 
+    glm::vec2 screen_dimensions = glm::vec2(WINDOW_WIDTH, WINDOW_HEIGHT);
+    renderable.bind_uniform(&screen_dimensions[0], VEC2_FLOAT, 1, "screen_dimensions");
     // glm::mat4 model_transform = glm::scale(glm::mat4(), glm::vec3(0.05f, 0.05f, 0.05f));
     glm::mat4 model_transform = glm::mat4();
     glm::vec3 eye = glm::vec3(12, 12, 20);
@@ -90,10 +92,8 @@ int main() {
     glm::vec3 up = glm::vec3(0, 1, 0);
     glm::mat4 view_transform = glm::lookAt(eye, focus, up);
     glm::mat4 perspective_transform = glm::perspective(FOV, ((float) WINDOW_WIDTH) / WINDOW_HEIGHT, 0.1f, 100.0f);
-    // glm::mat4 MVP = perspective_transform * view_transform * model_transform;
-    renderable.bind_uniform(&model_transform[0][0], MAT4_FLOAT, 1, "model_transform");
-    renderable.bind_uniform(&view_transform[0][0], MAT4_FLOAT, 1, "view_transform");
-    renderable.bind_uniform(&perspective_transform[0][0], MAT4_FLOAT, 1, "perspective_transform");
+    glm::mat4 MVP = perspective_transform * view_transform * model_transform;
+    renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
     check_gl_error();
 
     printf("Starting display...\n");
@@ -104,11 +104,13 @@ int main() {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
             eye = glm::rotate(eye, 5 * PI / 180, up);
             view_transform = glm::lookAt(eye, focus, up);
-            renderable.bind_uniform(&view_transform[0][0], MAT4_FLOAT, 1, "view_transform");
+            MVP = perspective_transform * view_transform * model_transform;
+            renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
             eye = glm::rotate(eye, -5 * PI / 180, up);
             view_transform = glm::lookAt(eye, focus, up);
-            renderable.bind_uniform(&view_transform[0][0], MAT4_FLOAT, 1, "view_transform");
+            MVP = perspective_transform * view_transform * model_transform;
+            renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
         }
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

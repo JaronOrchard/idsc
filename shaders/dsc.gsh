@@ -3,9 +3,6 @@ layout(triangles) in;
 in int vert_status[];
 layout(triangle_strip, max_vertices=3) out;
 
-uniform mat4 view_transform;
-uniform mat4 perspective_transform;
-
 out vec3 color;
 noperspective out vec3 dist;
 
@@ -15,6 +12,7 @@ uniform vec3 STATUS_COLS[3] = {
     vec3(0.0, 0.0, 1.0)
 };
 
+uniform vec2 screen_dimensions;
 
 // This is copied from tetmesh.cpp
 int get_face_status() {
@@ -30,29 +28,31 @@ int get_face_status() {
 void main() {
     // color = STATUS_COLS[get_face_status()];
 
-    vec3 ab = vec3(gl_in[0].gl_Position - gl_in[1].gl_Position);
-    vec3 ac = vec3(gl_in[0].gl_Position - gl_in[2].gl_Position);
-    vec3 ba = vec3(gl_in[1].gl_Position - gl_in[0].gl_Position);
-    vec3 bc = vec3(gl_in[1].gl_Position - gl_in[2].gl_Position);
+    vec2 ab = vec2(gl_in[0].gl_Position - gl_in[1].gl_Position);
+    vec2 ac = vec2(gl_in[0].gl_Position - gl_in[2].gl_Position);
+    vec2 ba = vec2(gl_in[1].gl_Position - gl_in[0].gl_Position);
+    vec2 bc = vec2(gl_in[1].gl_Position - gl_in[2].gl_Position);
+    ab *= screen_dimensions;
+    ac *= screen_dimensions;
+    ba *= screen_dimensions;
+    bc *= screen_dimensions;
 
     float ab_len = length(bc);
     float ac_len = length(ac);
     float bc_len = length(bc);
 
-    float max_len = max(ab_len, max(ac_len, bc_len));
-
-    dist = vec3(length(cross(ab, ac)) / (bc_len * max_len), 0, 0);
-    gl_Position = perspective_transform * view_transform * gl_in[0].gl_Position;
+    dist = vec3(length(cross(vec3(ab, 0), vec3(ac, 0))) / bc_len, 0, 0);
+    gl_Position = gl_in[0].gl_Position;
     color = STATUS_COLS[vert_status[0]];
     EmitVertex();
 
-    dist = vec3(0, length(cross(ba, bc)) / (ac_len * max_len), 0);
-    gl_Position = perspective_transform * view_transform * gl_in[1].gl_Position;
+    dist = vec3(0, length(cross(vec3(ba, 0), vec3(bc, 0))) / ac_len, 0);
+    gl_Position = gl_in[1].gl_Position;
     color = STATUS_COLS[vert_status[1]];
     EmitVertex();
 
-    dist = vec3(0, 0, length(cross(ac, bc)) / (ab_len * max_len));
-    gl_Position = perspective_transform * view_transform * gl_in[2].gl_Position;
+    dist = vec3(0, 0, length(cross(vec3(ac, 0), vec3(bc, 0))) / ab_len);
+    gl_Position = gl_in[2].gl_Position;
     color = STATUS_COLS[vert_status[2]];
     EmitVertex();
 }
