@@ -161,7 +161,14 @@ void IndexedFaceSet::bind_attributes(Renderable & renderable) {
     renderable.bind_indices(indices, num_indices * sizeof(int));
 }
 
+
 void IndexedFaceSet::update_attributes(Renderable & renderable) {
     renderable.bind_attribute(vertices, VEC3_FLOAT, num_vertices, "vertex_position");
 }
 
+
+void IndexedFaceSet::bind_attributes_on_tetmesh(  Renderable & renderable,  TetMesh & tet ){
+	
+	renderable.bind_attribute( tet->vertices, tet->num_tets * 4 * sizeof(int), 4, "face_position"  );
+	renderable.bind_indices(indices, num_indices * sizeof(int));
+}
