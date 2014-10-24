@@ -157,11 +157,11 @@ IndexedFaceSet::~IndexedFaceSet() {
 }
 
 void IndexedFaceSet::bind_attributes(Renderable & renderable) {
-    renderable.bind_attribute(vertices, num_vertices * 3 * sizeof(float), 3, "vertex_position");
+    renderable.bind_attribute(vertices, VEC3_FLOAT, num_vertices, "vertex_position");
     renderable.bind_indices(indices, num_indices * sizeof(int));
 }
 
 void IndexedFaceSet::update_attributes(Renderable & renderable) {
-    renderable.bind_attribute(vertices, num_vertices * 3 * sizeof(float), 3, "vertex_position");
+    renderable.bind_attribute(vertices, VEC3_FLOAT, num_vertices, "vertex_position");
 }
 

@@ -28,6 +28,7 @@ typedef struct _model_attribute_t {
     GLuint buffer_id;
     GLint attribute_id;
     int num_channels;
+    GLenum gl_type;
 } model_attribute_t;
 
 typedef struct _model_texture_t {
@@ -47,9 +48,12 @@ typedef struct _model_uniform_t {
 class Renderable {
     public:
         Renderable(Shader * shader, bool is_indexed, bool is_instanced, GLenum draw_mode);
-        void bind_attribute(float * buffer, int size, int channels, char * attribute_name);
+        int get_num_channels(uniform_data_t type);
+        GLenum get_gl_enum(uniform_data_t type);
+        GLenum get_base_size(uniform_data_t type);
+        void bind_attribute(void * buffer, uniform_data_t type, int count, char * attribute_name);
         void bind_indices(int * buffer, int size);
-        void bind_uniform(float * buffer, uniform_data_t type, int count, char * uniform_name);
+        void bind_uniform(void * buffer, uniform_data_t type, int count, char * uniform_name);
         void bind_2d_texture(const void * data, int width, int height, GLenum type, int channels, char * texture_name);
         void render();
     private:

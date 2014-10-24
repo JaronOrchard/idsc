@@ -61,7 +61,7 @@ int main() {
     TetMesh * tet_mesh = TetMesh::from_indexed_face_set(*mesh);
 
     printf("Saving mesh to output/ ...\n");
-    tet_mesh->save("output/sphere");
+    tet_mesh->save("output/initial_sphere");
 
     printf("Evolving tet mesh...\n");
     for (int i = 0; i < tet_mesh->num_vertices; i++) {

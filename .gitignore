@@ -2,3 +2,4 @@
 .waf*
 build/
 deps/
+output/*

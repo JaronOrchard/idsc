@@ -17,22 +17,86 @@ Renderable::Renderable(Shader * shader, bool is_indexed, bool is_instanced, GLen
     indices_buffer_id = -1;
 }
 
-void Renderable::bind_attribute(float * buffer, int size, int channels, char * attribute_name) {
+int Renderable::get_num_channels(uniform_data_t type) {
+    switch (type) {
+        case SCALAR_FLOAT:
+            return 1;
+        case VEC2_FLOAT:
+            return 2;
+        case VEC3_FLOAT:
+            return 3;
+        case VEC4_FLOAT:
+            return 4;
+        case MAT3_FLOAT:
+            return 9;
+        case MAT4_FLOAT:
+            return 16;
+        case SCALAR_INT:
+            return 1;
+        case VEC2_INT:
+            return 2;
+        case VEC3_INT:
+            return 3;
+        case VEC4_INT:
+        default:
+            return 4;
+    }
+}
+
+GLenum Renderable::get_gl_enum(uniform_data_t type) {
+    switch (type) {
+        case SCALAR_FLOAT:
+        case VEC2_FLOAT:
+        case VEC3_FLOAT:
+        case VEC4_FLOAT:
+        case MAT3_FLOAT:
+        case MAT4_FLOAT:
+            return GL_FLOAT;
+        case SCALAR_INT:
+        case VEC2_INT:
+        case VEC3_INT:
+        case VEC4_INT:
+        default:
+            return GL_INT;
+    }
+}
+
+GLenum Renderable::get_base_size(uniform_data_t type) {
+    switch (type) {
+        case SCALAR_FLOAT:
+        case VEC2_FLOAT:
+        case VEC3_FLOAT:
+        case VEC4_FLOAT:
+        case MAT3_FLOAT:
+        case MAT4_FLOAT:
+            return sizeof(GLfloat);
+        case SCALAR_INT:
+        case VEC2_INT:
+        case VEC3_INT:
+        case VEC4_INT:
+        default:
+            return sizeof(GLint);
+    }
+}
+
+void Renderable::bind_attribute(void * buffer, uniform_data_t type, int count, char * attribute_name) {
     GLint attribute_location = glGetAttribLocation(shader->get_id(), attribute_name);
     if (attribute_location == -1) {
         // fprintf(stderr, "could not find attribute %s\n", attribute_name);
         return;
     }
 
+    int channels = get_num_channels(type);
     GLuint buffer_id;
     glGenBuffers(1, &buffer_id);
     glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
-    glBufferData(GL_ARRAY_BUFFER, size, buffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, get_base_size(type) * channels * count, buffer, GL_STATIC_DRAW);
 
     model_attribute_t attribute = {
 		buffer_id,
         attribute_location,
-        channels
+        channels,
+        get_gl_enum(type)
     };
 
     attributes.push_back(attribute);
@@ -47,48 +111,15 @@ void Renderable::bind_indices(int * buffer, int size) {
     check_gl_error();
 }
 
-void Renderable::bind_uniform(float * buffer, uniform_data_t type, int count, char * uniform_name) {
+void Renderable::bind_uniform(void * buffer, uniform_data_t type, int count, char * uniform_name) {
     GLint uniform_location = glGetUniformLocation(shader->get_id(), uniform_name);
     if (uniform_location == -1) {
         fprintf(stderr, "could not find uniform %s\n", uniform_name);
         return;
     }
 
-    int channels;
-    switch (type) {
-		case SCALAR_FLOAT: //FLOAT:
-            channels = 1;
-            break;
-        case VEC2_FLOAT:
-            channels = 2;
-            break;
-        case VEC3_FLOAT:
-            channels = 3;
-            break;
-        case VEC4_FLOAT:
-            channels = 4;
-            break;
-        case MAT3_FLOAT:
-            channels = 9;
-            break;
-        case MAT4_FLOAT:
-            channels = 16;
-            break;
-		case SCALAR_INT: //INT:
-            channels = 1;
-            break;
-        case VEC2_INT:
-            channels = 2;
-            break;
-        case VEC3_INT:
-            channels = 3;
-            break;
-        case VEC4_INT:
-            channels = 4;
-            break;
-    }
-
-    int size = sizeof(float);
+    int channels = get_num_channels(type);
+    int size = get_base_size(type);
     if (uniforms.count(uniform_name) == 0) {
         void * copied_data = (void *) malloc(size * channels * count);
         memcpy(copied_data, buffer, size * channels * count);
@@ -203,7 +234,7 @@ void Renderable::render() {
 	for (auto it = attributes.begin(); it != attributes.end(); ++it) {
         glEnableVertexAttribArray(it->attribute_id);
         glBindBuffer(GL_ARRAY_BUFFER, it->buffer_id);
-        glVertexAttribPointer(it->attribute_id, it->num_channels, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+        glVertexAttribPointer(it->attribute_id, it->num_channels, it->gl_type, GL_FALSE, 0, NULL);
     }
     check_gl_error();
 
