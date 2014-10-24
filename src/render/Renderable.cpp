@@ -31,6 +31,8 @@ int Renderable::get_num_channels(uniform_data_t type) {
             return 9;
         case MAT4_FLOAT:
             return 16;
+        case SCALAR_SHORT:
+            return 1;
         case SCALAR_INT:
             return 1;
         case VEC2_INT:
