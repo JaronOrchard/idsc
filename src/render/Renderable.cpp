@@ -190,7 +190,7 @@ void Renderable::render() {
 	for (auto it = uniforms.begin(); it != uniforms.end(); ++it) {
 		model_uniform_t u = it->second;
         switch (u.type) {
-			case SCALAR_FLOAT: //FLOAT:
+			case SCALAR_FLOAT:
                 glUniform1fv(u.location, u.count, (GLfloat *) u.data);
                 break;
             case VEC2_FLOAT:
@@ -208,7 +208,7 @@ void Renderable::render() {
             case MAT4_FLOAT:
                 glUniformMatrix4fv(u.location, u.count, GL_FALSE, (GLfloat *) u.data);
                 break;
-			case SCALAR_INT: //INT:
+			case SCALAR_INT:
                 glUniform1iv(u.location, u.count, (GLint *) u.data);
                 break;
             case VEC2_INT:

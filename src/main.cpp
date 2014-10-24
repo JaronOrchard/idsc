@@ -85,7 +85,7 @@ int main() {
 
     // glm::mat4 model_transform = glm::scale(glm::mat4(), glm::vec3(0.05f, 0.05f, 0.05f));
     glm::mat4 model_transform = glm::mat4();
-    glm::vec3 eye = glm::vec3(2, 2, 6);
+    glm::vec3 eye = glm::vec3(12, 12, 20);
     glm::vec3 focus = glm::vec3(0, 1, 0);
     glm::vec3 up = glm::vec3(0, 1, 0);
     glm::mat4 view_transform = glm::lookAt(eye, focus, up);

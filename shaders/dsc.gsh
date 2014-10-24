@@ -6,11 +6,18 @@ layout(triangle_strip, max_vertices=3) out;
 uniform mat4 view_transform;
 uniform mat4 perspective_transform;
 
-flat out int fragment_status;
+out vec3 color;
 noperspective out vec3 dist;
 
+uniform vec3 STATUS_COLS[3] = {
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(0.0, 0.0, 1.0)
+};
+
+
 // This is copied from tetmesh.cpp
-int get_face_status() {
+float get_face_status() {
     if (vert_status[0] == 0 || vert_status[1] == 0 || vert_status[2] == 0) {
         return 0; // Tet is inside
     } else if (vert_status[0] == 1 || vert_status[1] == 1 || vert_status[2] == 1) {
@@ -21,7 +28,7 @@ int get_face_status() {
 }
 
 void main() {
-    fragment_status = get_face_status();
+    // fragment_status = get_face_status();
     vec3 ab = vec3(gl_in[0].gl_Position - gl_in[1].gl_Position);
     vec3 ac = vec3(gl_in[0].gl_Position - gl_in[2].gl_Position);
     vec3 ba = vec3(gl_in[1].gl_Position - gl_in[0].gl_Position);
@@ -35,13 +42,16 @@ void main() {
 
     dist = vec3(length(cross(ab, ac)) / (bc_len * max_len), 0, 0);
     gl_Position = perspective_transform * view_transform * gl_in[0].gl_Position;
+    color = STATUS_COLS[vert_status[0]];
     EmitVertex();
 
     dist = vec3(0, length(cross(ba, bc)) / (ac_len * max_len), 0);
     gl_Position = perspective_transform * view_transform * gl_in[1].gl_Position;
+    color = STATUS_COLS[vert_status[1]];
     EmitVertex();
 
     dist = vec3(0, 0, length(cross(ac, bc)) / (ab_len * max_len));
     gl_Position = perspective_transform * view_transform * gl_in[2].gl_Position;
+    color = STATUS_COLS[vert_status[2]];
     EmitVertex();
 }
