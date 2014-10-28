@@ -296,8 +296,8 @@ REAL TetMesh::get_distance_movable(int vertex_index, REAL * velocity) {
                 if (distance > 0 && (distance < min_distance || min_distance == -1)) {
                     min_distance = distance;
                 }
+				break;
             }
-            break;
         }
     }
     return min_distance;
