@@ -4,6 +4,7 @@
 #include "IndexedFaceSet.h"
 #include "tetgen.h"
 #include <string>
+#include <vector>
 
 class TetMesh {
 
@@ -38,8 +39,11 @@ private:
     REAL get_distance_movable(int vertex_index, REAL * velocity);
     void calculate_plane(REAL * plane, REAL * v1, REAL * v2, REAL * v3);
     REAL intersect_plane(REAL * plane, REAL * vertex, REAL * velocity);
-	int get_opposite_tet(int tet, int opposite_vertex);
-
+	std::vector<int> get_other_vertices(int tet, int vertex);
+	int get_opposite_tet(int tet, int vertex);
+	int get_opposite_vertex(int tet, int vertex);
+	void subdivide_opposite_tet(int tet, int vertex);
+    
 };
 
 #endif

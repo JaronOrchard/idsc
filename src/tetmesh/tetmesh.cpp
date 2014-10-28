@@ -368,25 +368,33 @@ void TetMesh::bind_attributes(Renderable & renderable) {
 }
 
 /*
- * Given the index of a tet and the index of a vertex, returns the tet that
- * shares the OTHER three out of four vertices in the tet.
+ * Given the index of a tet and the index of a vertex (in that tet), returns
+ * a vector of ints comprised of the OTHER three vertices in that tet.
  */
-int TetMesh::get_opposite_tet(int tet, int opposite_vertex) {
-	// Get the other three vertices in the tet:
-	int v[3];
-	int temp_index = 0;
-	for (int i = tet*4; i < tet*4+4; i++) {
-		if (tets[i] == opposite_vertex) { continue; }
-		if (temp_index == 3) {
-			std::cerr << "** ERROR in get_opposite_tet() - Given tet does not contain given vertex" << std::endl;
-			break;
-		}
-		v[temp_index] = tets[i];
-		temp_index++;
+std::vector<int> TetMesh::get_other_vertices(int tet, int vertex) {
+	std::vector<int> v;
+	if (tet < 0 || tet >= num_tets) {
+		std::cerr << "** ERROR in get_other_vertices() - Tet index does not exist" << std::endl;
+		return v;
 	}
-	// Find the tet that matches those three vertices (but not the given fourth):
+	for (int i = tet*4; i < tet*4+4; i++) {
+		if (tets[i] == vertex) { continue; }
+		v.push_back(tets[i]);
+	}
+	if (v.size() > 3) {
+		std::cerr << "** ERROR in get_other_vertices() - Given tet does not contain given vertex" << std::endl;
+	}
+	return v;
+}
+
+/*
+ * Given the index of a tet and the index of a vertex (in that tet), returns
+ * the tet that shares the OTHER three out of four vertices in the tet.
+ */
+int TetMesh::get_opposite_tet(int tet, int vertex) {
+	std::vector<int> v = get_other_vertices(tet, vertex);
 	for (int i = 0; i < num_tets; i++) {
-		if (tets[i*4] != opposite_vertex && tets[i*4+1] != opposite_vertex && tets[i*4+2] != opposite_vertex && tets[i*4+3] != opposite_vertex &&
+		if (tets[i*4] != vertex && tets[i*4+1] != vertex && tets[i*4+2] != vertex && tets[i*4+3] != vertex &&
 			(tets[i*4] == v[0] || tets[i*4+1] == v[0] || tets[i*4+2] == v[0] || tets[i*4+3] == v[0]) &&
 			(tets[i*4] == v[1] || tets[i*4+1] == v[1] || tets[i*4+2] == v[1] || tets[i*4+3] == v[1]) &&
 			(tets[i*4] == v[2] || tets[i*4+1] == v[2] || tets[i*4+2] == v[2] || tets[i*4+3] == v[2])) {
@@ -394,4 +402,32 @@ int TetMesh::get_opposite_tet(int tet, int opposite_vertex) {
 		}
 	}
 	return -1; // tet not found
+}
+
+/*
+ * Given the index of a tet and the index of a vertex (in that tet),
+ * return the opposite vertex of the opposite tet.
+ */
+int TetMesh::get_opposite_vertex(int tet, int vertex) {
+	std::vector<int> v = get_other_vertices(tet, vertex);
+	int opposite_tet = get_opposite_tet(tet, vertex);
+	for (int i = opposite_tet*4; i <= opposite_tet*4+4; i++) {
+		if (tets[i] == v[0] || tets[i] == v[1] || tets[i] == v[2]) { continue; }
+		return tets[i];
+	}
+	return -1; // vertex not found
+}
+
+/*
+ * Given the index of a tet and the index of a vertex (in that tet), subdivides
+ * the tet opposite the given vertex into 6 new tets by creating a new vertex
+ * and removing the original tet.
+ */
+void TetMesh::subdivide_opposite_tet(int tet, int vertex) {
+	std::vector<int> v = get_other_vertices(tet, vertex);
+	int opposite_tet = get_opposite_tet(tet, vertex);
+	int opposite_vertex = get_opposite_vertex(tet, vertex);
+	// *** MARK THE ORIGINAL TET AS DEAD
+	// *** MARK THE OPPOSITE_TET AS DEAD
+	// *** SUBDIVIDE THE OPPOSITE_TET INTO 6 NEW ONES
 }
