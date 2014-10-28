@@ -367,3 +367,31 @@ void TetMesh::bind_attributes(Renderable & renderable) {
     free(indices);
 }
 
+/*
+ * Given the index of a tet and the index of a vertex, returns the tet that
+ * shares the OTHER three out of four vertices in the tet.
+ */
+int TetMesh::get_opposite_tet(int tet, int opposite_vertex) {
+	// Get the other three vertices in the tet:
+	int v[3];
+	int temp_index = 0;
+	for (int i = tet*4; i < tet*4+4; i++) {
+		if (tets[i] == opposite_vertex) { continue; }
+		if (temp_index == 3) {
+			std::cerr << "** ERROR in get_opposite_tet() - Given tet does not contain given vertex" << std::endl;
+			break;
+		}
+		v[temp_index] = tets[i];
+		temp_index++;
+	}
+	// Find the tet that matches those three vertices (but not the given fourth):
+	for (int i = 0; i < num_tets; i++) {
+		if (tets[i*4] != opposite_vertex && tets[i*4+1] != opposite_vertex && tets[i*4+2] != opposite_vertex && tets[i*4+3] != opposite_vertex &&
+			(tets[i*4] == v[0] || tets[i*4+1] == v[0] || tets[i*4+2] == v[0] || tets[i*4+3] == v[0]) &&
+			(tets[i*4] == v[1] || tets[i*4+1] == v[1] || tets[i*4+2] == v[1] || tets[i*4+3] == v[1]) &&
+			(tets[i*4] == v[2] || tets[i*4+1] == v[2] || tets[i*4+2] == v[2] || tets[i*4+3] == v[2])) {
+				return i;
+		}
+	}
+	return -1; // tet not found
+}
