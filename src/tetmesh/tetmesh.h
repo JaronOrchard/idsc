@@ -11,6 +11,7 @@ class TetMesh {
 public:
     
     static TetMesh * from_indexed_face_set(IndexedFaceSet & ifs);
+	static TetMesh * create_debug_tetmesh();
 
     // Saves the current TetMesh to .node, .ele, and .face files for use
     // with TetView.  The file extensions are added automatically.
@@ -30,13 +31,21 @@ private:
     
     int num_tets;
 	std::vector<int> tets;              // 4 vertex indices per tet
+
+	std::vector< std::pair<int, int> > pending_subdivisions; // pair<tet index, opposite vertex>
     
+	struct DistanceMovableInfo {
+		DistanceMovableInfo() : distance(-1), tet_index(-1) { }
+		REAL distance;
+		int tet_index;
+	};
+
     TetMesh(int num_vertices, std::vector<REAL> vertices, std::vector<short> vertex_statuses,
             std::vector<REAL> vertex_velocities, int num_tets, std::vector<int> tets);
     short get_face_boundary_marker(int vertex1, int vertex2, int vertex3);
     bool advect();
     void retesselate();
-    REAL get_distance_movable(int vertex_index, REAL * velocity);
+    DistanceMovableInfo get_distance_movable(int vertex_index, REAL * velocity);
     void calculate_plane(REAL * plane, REAL * v1, REAL * v2, REAL * v3);
     REAL intersect_plane(REAL * plane, REAL * vertex, REAL * velocity);
 	std::vector<int> get_other_vertices(int tet, int vertex);

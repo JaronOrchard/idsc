@@ -57,19 +57,20 @@ int main() {
     IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
 
     printf("Generating tet mesh...\n");
-    TetMesh * tet_mesh = TetMesh::from_indexed_face_set(*mesh);
+    //TetMesh * tet_mesh = TetMesh::from_indexed_face_set(*mesh);
+	TetMesh * tet_mesh = TetMesh::create_debug_tetmesh();
     delete mesh;
 
     printf("Saving mesh to output/ ...\n");
     tet_mesh->save("output/initial_sphere");
 
-    printf("Evolving tet mesh...\n");
+    /*printf("Evolving tet mesh...\n");
     for (int i = 0; i < tet_mesh->num_vertices; i++) {
         if (tet_mesh->vertex_statuses[i] == 2) {
             // scale and translate x
             tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.001;
         }
-    }
+    }*/
     tet_mesh->evolve();
     tet_mesh->save("output/evolved_sphere");
 
