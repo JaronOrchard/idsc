@@ -16,8 +16,8 @@
 
 #define absolute(a) (a < 0 ? -a : a)
 
-TetMesh::TetMesh(int num_vertices, REAL * vertices, short * vertex_statuses,
-            REAL * vertex_targets, int num_tets, int * tets) {
+TetMesh::TetMesh(int num_vertices, std::vector<REAL> vertices, std::vector<short> vertex_statuses,
+            std::vector<REAL> vertex_targets, int num_tets, std::vector<int> tets) {
     this->num_vertices = num_vertices;
     this->vertices = vertices;
     this->vertex_statuses = vertex_statuses;
@@ -27,10 +27,7 @@ TetMesh::TetMesh(int num_vertices, REAL * vertices, short * vertex_statuses,
 }
 
 TetMesh::~TetMesh() {
-    if (vertices) { delete [] vertices; }
-    if (vertex_statuses) { delete [] vertex_statuses; }
-    if (vertex_targets) { delete [] vertex_targets; }
-    if (tets) { delete [] tets; }
+    // nothing to clean up
 }
 
 // assumes interface will not evolve beyod [-10, 10]^3 and encloses the point (0, 0, 0)
@@ -118,10 +115,13 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     int inner_num_v = inner_output.numberofpoints - orig_num_v;
 
     int num_v = orig_num_v + outer_num_v + inner_num_v;
-    REAL * vertices = new REAL[num_v * 3];
-    REAL * targets = new REAL[num_v * 3];
-    short * statuses = new short[num_v];
-
+	std::vector<REAL> vertices;
+	std::vector<REAL> targets;
+	std::vector<short> statuses;
+	vertices.resize(num_v * 3);
+	targets.resize(num_v * 3);
+	statuses.resize(num_v);
+    
     for (int i = 0; i < orig_num_v; i++) {
         vertices[i * 3] = inner_output.pointlist[i * 3];
         vertices[i * 3 + 1] = inner_output.pointlist[i * 3 + 1];
@@ -147,7 +147,8 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
 
     int inner_num_t = inner_output.numberoftetrahedra;
     int num_t = outer_output.numberoftetrahedra + inner_num_t;
-    int * tetrahedra = new int[num_t * 4];
+	std::vector<int> tetrahedra;
+	tetrahedra.resize(num_t * 4);
     for (int i = 0; i < inner_num_t; i++) {
         for (int j = 0; j < 4; j++) {
             tetrahedra[i * 4 + j] = inner_output.tetrahedronlist[i * 4 + j];
@@ -242,7 +243,7 @@ bool TetMesh::advect() {
     };
     int num_vertices_at_target = 0;
     for (int i = 0; i < num_vertices; i++) {
-        vec_subtract(velocity, vertex_targets + i * 3, vertices + i * 3);
+		vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
         // TODO: for performance, can keep flag of whether at target and calculate this in else
         REAL target_distance = vec_length(velocity);
         // this vertex is already moved
@@ -256,7 +257,7 @@ bool TetMesh::advect() {
                 std::cout << "warning: unable to move vertex " << i << ", exitting to avoid an infinite loop" << std::endl;
                 return true;
             } else if (distance_movable >= target_distance) {
-                memcpy(vertices + i * 3, vertex_targets + i * 3, 3 * sizeof(REAL));
+                memcpy(&vertices[i * 3], &vertex_targets[i * 3], 3 * sizeof(REAL));
             } else {
                 vec_scale(velocity, velocity, distance_movable);
                 vertices[i * 3] += velocity[i * 3];
@@ -280,19 +281,19 @@ REAL TetMesh::get_distance_movable(int vertex_index, REAL * velocity) {
                 // TODO: clean this up
                 switch (j) {
                     case 0:
-                        calculate_plane(plane, vertices + tets[i * 4 + 1] * 3, vertices + tets[i * 4 + 2] * 3, vertices + tets[i * 4 + 3] * 3);
+                        calculate_plane(plane, &vertices[tets[i * 4 + 1] * 3], &vertices[tets[i * 4 + 2] * 3], &vertices[tets[i * 4 + 3] * 3]);
                         break;
                     case 1:
-                        calculate_plane(plane, vertices + tets[i * 4 + 0] * 3, vertices + tets[i * 4 + 2] * 3, vertices + tets[i * 4 + 3] * 3);
+                        calculate_plane(plane, &vertices[tets[i * 4 + 0] * 3], &vertices[tets[i * 4 + 2] * 3], &vertices[tets[i * 4 + 3] * 3]);
                         break;
                     case 2:
-                        calculate_plane(plane, vertices + tets[i * 4 + 0] * 3, vertices + tets[i * 4 + 1] * 3, vertices + tets[i * 4 + 3] * 3);
+                        calculate_plane(plane, &vertices[tets[i * 4 + 0] * 3], &vertices[tets[i * 4 + 1] * 3], &vertices[tets[i * 4 + 3] * 3]);
                         break;
                     case 3:
-                        calculate_plane(plane, vertices + tets[i * 4 + 0] * 3, vertices + tets[i * 4 + 1] * 3, vertices + tets[i * 4 + 2] * 3);
+                        calculate_plane(plane, &vertices[tets[i * 4 + 0] * 3], &vertices[tets[i * 4 + 1] * 3], &vertices[tets[i * 4 + 2] * 3]);
                         break;
                 }
-                REAL distance = intersect_plane(plane, vertices + vertex_index * 3, velocity);
+                REAL distance = intersect_plane(plane, &vertices[vertex_index * 3], velocity);
                 if (distance > 0 && (distance < min_distance || min_distance == -1)) {
                     min_distance = distance;
                 }
@@ -339,7 +340,7 @@ void TetMesh::bind_attributes(Renderable & renderable) {
     renderable.bind_attribute(verts, VEC3_FLOAT, num_vertices, "vertex_position");
     free(verts);
 
-    renderable.bind_attribute(vertex_statuses, SCALAR_SHORT, num_vertices, "vertex_status");
+    renderable.bind_attribute(&vertex_statuses[0], SCALAR_SHORT, num_vertices, "vertex_status");
 
     int num_faces = num_tets * 4;
     int num_indices = num_faces * 3;

@@ -22,17 +22,17 @@ public:
     ~TetMesh();
     
     int num_vertices;
-    REAL * vertices;            // 3 REALs per vertex for x, y, z
-    REAL * vertex_targets;   // 3 REALs per vertex for x, y, z
-    short * vertex_statuses;    // (0, 1, 2) for inside/outside/boundary
-
+    std::vector<REAL> vertices;         // 3 REALs per vertex for x, y, z
+	std::vector<REAL> vertex_targets;   // 3 REALs per vertex for x, y, z
+	std::vector<short> vertex_statuses;	// 0 for inside, 1 for outside, 2 for boundary
+	
 private:
     
     int num_tets;
-    int * tets;                 // 4 vertex indices per tet
+	std::vector<int> tets;              // 4 vertex indices per tet
     
-    TetMesh(int num_vertices, REAL * vertices, short * vertex_statuses,
-            REAL * vertex_velocities, int num_tets, int * tets);
+    TetMesh(int num_vertices, std::vector<REAL> vertices, std::vector<short> vertex_statuses,
+            std::vector<REAL> vertex_velocities, int num_tets, std::vector<int> tets);
     short get_face_boundary_marker(int vertex1, int vertex2, int vertex3);
     bool advect();
     void retesselate();
