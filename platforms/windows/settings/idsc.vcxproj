@@ -51,7 +51,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../include;../include/tetgen1.5.0;../../../src/render;../../../src/model;../../../src/tetmesh;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include;../include/TGUI;../include/tetgen1.5.0;../../../src/render;../../../src/model;../../../src/tetmesh;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

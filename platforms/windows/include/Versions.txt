@@ -4,3 +4,4 @@ GL          glew-1.10.0
 glm		    glm-0.9.5.4
 SFML        SFML-2.1-windows-vc10-32bits
 tetgen      tetgen1.5.0
+TGUI		TGUI-0.6.6
