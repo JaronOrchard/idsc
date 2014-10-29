@@ -106,6 +106,7 @@ void Renderable::bind_attribute(void * buffer, uniform_data_t type, int count, c
     };
 
     attributes.push_back(attribute);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     check_gl_error();
 }
 
@@ -267,6 +268,8 @@ void Renderable::render() {
         glDisableVertexAttribArray(it->attribute_id);
     }
     glActiveTexture(GL_TEXTURE0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     check_gl_error();
 }
 

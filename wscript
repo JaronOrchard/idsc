@@ -60,6 +60,11 @@ def get_deps(ctx):
             'name': 'sfml',
             'url': 'http://www.sfml-dev.org/download/sfml/2.1/SFML-2.1-sources.zip',
             'hash': '5f46d7748223be3f0c6a9fcf18c0016d227f7b1903cdbcd85f61ddbc82ef95bf',
+        },
+        {
+            'name': 'tgui',
+            'url': 'https://github.com/texus/TGUI/archive/v0.6.6.zip',
+            'hash': '0af220ca9f9dc279b8551fa682a3beaa512f9e776210443ebdfefad532e7a907',
         }
     ]
 
@@ -84,12 +89,6 @@ def get_deps(ctx):
         unzip_task.set_inputs(arcive_node)
         unzip_task.set_outputs(src_node)
         ctx.add_to_group(unzip_task)
-
-        if 'post' in dep:
-            post_task = dep['post'](env=ctx.env)
-            post_task.set_run_after(unzip_task)
-            post_task.src_node = src_node
-            ctx.add_to_group(post_task)
 
         src_nodes[dep_name] = src_node
 
@@ -178,13 +177,28 @@ def build(ctx):
         cxxflags     = ['-w', '-O3']
     )
 
+    # TGUI build
+    tgui_node = deps_node.make_node('tgui_src').make_node('TGUI-0.6.6')
+    ctx.env.TGUI_CONFIG_IN = tgui_node.make_node('include').make_node('TGUI').make_node('Config.hpp.in').abspath()
+    ctx.env.TGUI_CONFIG_OUT = tgui_node.make_node('include').make_node('TGUI').make_node('Config.hpp').abspath()
+    ctx(rule='sed -e s/@MAJOR_VERSION@/0/ -e s/@MINOR_VERSION@/6/ -e s/@PATCH_VERSION@/6/ <${TGUI_CONFIG_IN} >${TGUI_CONFIG_OUT}')
+    tgui_source = tgui_node.ant_glob('src/TGUI/**/*.cpp')
+    ctx.stlib(
+        source       = tgui_source,
+        target       = 'tgui',
+        includes     = [tgui_node.make_node('include'), sfml_node.make_node('include')],
+        defines      = ['TGUI_USE_STATIC_STD_LIBS', 'SFML_STATIC_LIBRARIES'],
+        use          = 'sfml',
+        cxxflags     = ['-w', '-O3', '--std=gnu++0x']
+    )
+
     sources = ['main.cpp']
     uselibs = []
     defines = ['SFML_STATIC', 'UNICODE', '_UNICODE', 'GLEW_STATIC']
     libs = ['jpeg', 'sndfile']
     stlibs = []
     stlibpath = []
-    includes = [tetgen_include_node, glew_include_node, sfml_node.make_node('include'), 'deps/glm_src/glm']
+    includes = [tetgen_include_node, glew_include_node, sfml_node.make_node('include'), 'deps/glm_src/glm', tgui_node.make_node('include')]
 
     if ctx.env['DEST_OS'] == 'linux':
         uselibs.extend(['X11', 'XRANDR', 'OPENAL', 'SNDFILE'])
@@ -199,6 +213,7 @@ def build(ctx):
 
         'src/render/Shader.cpp',
         'src/render/Renderable.cpp',
+        'src/render/TetrahedralViewer.cpp',
 
         'src/model/IndexedFaceSet.cpp',
 
@@ -207,7 +222,7 @@ def build(ctx):
     ctx.program(
         source       = ' '.join(src_files),
         target       = 'idsc',
-        use          = ['sfml', 'freetype', 'glew', 'tetgen'],
+        use          = ['sfml', 'freetype', 'glew', 'tetgen', 'tgui'],
         uselib       = uselibs,
 
         defines      = defines,
