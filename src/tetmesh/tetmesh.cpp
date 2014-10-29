@@ -107,7 +107,7 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     tetgenio inner_output;
     tetgenio outer_output;
     tetgenbehavior switches;
-    switches.parse_commandline("pYqQ");
+    switches.parse_commandline("pYq");
     tetrahedralize(&switches, inner_input, &inner_output);
     tetrahedralize(&switches, outer_input, &outer_output);
 

@@ -34,14 +34,6 @@ class UnzipArchive(Task):
         arc_zip = zipfile.ZipFile(self.inputs[0].abspath())
         arc_zip.extractall(self.outputs[0].abspath())
 
-class SFGUIPatch(Task):
-    def run(self):
-        # We patch the SFGUI renderer to use GLEW instead of GLee
-        sfgui_vbr_node = self.src_node.ant_glob('**/VertexBufferRenderer.cpp')[0]
-        vbr = sfgui_vbr_node.read(flags='rb')
-        vbr = vbr.replace('GLee.h', 'GL/glew.h').replace('GLEE', 'GLEW')
-        sfgui_vbr_node.write(vbr, flags='wb')
-
 def get_deps(ctx):
     deps = [
         {
@@ -68,12 +60,6 @@ def get_deps(ctx):
             'name': 'sfml',
             'url': 'http://www.sfml-dev.org/download/sfml/2.1/SFML-2.1-sources.zip',
             'hash': '5f46d7748223be3f0c6a9fcf18c0016d227f7b1903cdbcd85f61ddbc82ef95bf',
-        },
-        {
-            'name': 'sfgui',
-            'url': 'http://sfgui.sfml-dev.de/download/29',
-            'hash': '5eab368651eeb6207d2bcf8c3e280371c44d09186f3045a0a7933d30cff81a7a',
-            'post': SFGUIPatch
         }
     ]
 
@@ -192,33 +178,13 @@ def build(ctx):
         cxxflags     = ['-w', '-O3']
     )
 
-    # SFGUI build
-    sfgui_node =  deps_node.make_node('sfgui_src').make_node('SFGUI-0.2.0')
-    sfgui_source = sfgui_node.ant_glob('src/**/*.cpp')
-    sfgui_includes =  ['include', 'extlibs/libELL/include']
-    sfgui_includes = [sfgui_node.abspath() + '/' + include for include in sfgui_includes]
-    sfgui_includes = [glew_include_node, sfml_node.make_node('include')] + sfgui_includes
-    ctx.stlib(
-        source       = sfgui_source,
-        target       = 'sfgui',
-        defines      = ['SFGUI_INCLUDE_FONT', 'SFGUI_STATIC', 'SFML_STATIC', 'UNICODE', '_UNICODE', 'GLEW_STATIC'],
-        includes     = sfgui_includes,
-        cxxflags     = ['--std=gnu++11', '-w', '-O3']
-    )
-
     sources = ['main.cpp']
     uselibs = []
-    defines = ['SFGUI_STATIC', 'SFML_STATIC', 'UNICODE', '_UNICODE', 'GLEW_STATIC']
+    defines = ['SFML_STATIC', 'UNICODE', '_UNICODE', 'GLEW_STATIC']
     libs = ['jpeg', 'sndfile']
     stlibs = []
     stlibpath = []
-    includes = [
-        tetgen_include_node,
-        glew_include_node,
-        sfml_node.make_node('include'),
-        sfgui_node.make_node('include'),
-        deps_node.make_node('glm_src').make_node('glm')
-    ]
+    includes = [tetgen_include_node, glew_include_node, sfml_node.make_node('include'), 'deps/glm_src/glm']
 
     if ctx.env['DEST_OS'] == 'linux':
         uselibs.extend(['X11', 'XRANDR', 'OPENAL', 'SNDFILE'])
@@ -233,7 +199,6 @@ def build(ctx):
 
         'src/render/Shader.cpp',
         'src/render/Renderable.cpp',
-        'src/render/TetrahedralViewer.cpp',
 
         'src/model/IndexedFaceSet.cpp',
 
@@ -242,7 +207,7 @@ def build(ctx):
     ctx.program(
         source       = ' '.join(src_files),
         target       = 'idsc',
-        use          = ['sfgui', 'sfml', 'freetype', 'glew', 'tetgen'],
+        use          = ['sfml', 'freetype', 'glew', 'tetgen'],
         uselib       = uselibs,
 
         defines      = defines,

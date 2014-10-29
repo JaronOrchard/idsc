@@ -1,7 +1,6 @@
 
 #include <GL/glew.h>
 #include <SFML/Graphics.hpp>
-#include <SFGUI/SFGUI.hpp>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -13,7 +12,6 @@
 #include <iostream>
 
 #include "IndexedFaceSet.h"
-#include "TetrahedralViewer.h"
 #include "tetgen.h"
 #include "Shader.h"
 #include "Renderable.h"
@@ -25,7 +23,6 @@
 #define FOV 45.0f
 #define FRAME_RATE 60
 #define PI 3.14159f
-#define WINDOW_NAME "DSC Demo"
 
 int main() {
 
@@ -34,8 +31,7 @@ int main() {
     settings.antialiasingLevel = 8;
     settings.majorVersion = 3;
     settings.minorVersion = 2;
-    sf::Window window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_NAME, sf::Style::Default, settings);
-    window.setActive();
+    sf::Window window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "DSC Demo", sf::Style::Default, settings);
 
     printf("Initializing OpenGL...\n");
     glewExperimental = GL_TRUE;
@@ -71,7 +67,7 @@ int main() {
     for (int i = 0; i < tet_mesh->num_vertices; i++) {
         if (tet_mesh->vertex_statuses[i] == 2) {
             // scale and translate x
-            tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.5;
+            tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.001;
         }
     }
     tet_mesh->evolve();
@@ -100,12 +96,6 @@ int main() {
     renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
     check_gl_error();
 
-    sfg::SFGUI sfgui;
-    sfg::Desktop desktop;
-
-    TetrahedralViewer visualizer(&renderable, &desktop);
-    visualizer.init();
-
     printf("Starting display...\n");
     sf::Event event;
     sf::Clock clock;
@@ -123,9 +113,13 @@ int main() {
             renderable.bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
         }
 
-        while (window.pollEvent(event)) {
-            desktop.HandleEvent(event);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if (window.isOpen()) {
+            renderable.render();
+        }
+        check_gl_error();
 
+        while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 printf("Closing window...\n");
                 window.close();
@@ -133,20 +127,8 @@ int main() {
         }
 
         if (window.isOpen()) {
-            sf::sleep(sf::seconds(1.0f / FRAME_RATE));
-            desktop.Update(clock.restart().asSeconds());
-
-            glBindVertexArray(0);
-            glUseProgram(0);
-            sfgui.Display(window);
-            glBindVertexArray(vao);
-            glUseProgram(shader->get_id());
-
             window.display();
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            renderable.render();
-            check_gl_error();
+            sf::sleep(sf::seconds(1.0f / FRAME_RATE));
         }
     }
 
