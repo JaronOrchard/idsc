@@ -91,6 +91,22 @@ int main() {
     while (window.isOpen()) {
         // float frame_length = clock.restart().asSeconds();
 
+        glUseProgram(shader->get_id());
+        glBindVertexArray(vao);
+        while (gui.pollCallback(callback)) {
+            viewer.handle_callback(callback);
+        }
+
+        viewer.update();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        renderable.render();
+        check_gl_error();
+
+        glUseProgram(0);
+        glBindVertexArray(0);
+        gui.draw();
+        window.display();
+
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 printf("Closing window...\n");
@@ -99,26 +115,7 @@ int main() {
             viewer.handle_event(event);
         }
 
-        glUseProgram(shader->get_id());
-        glBindVertexArray(vao);
-        while (gui.pollCallback(callback)) {
-            viewer.handle_callback(callback);
-        }
-
-        viewer.update();
-
-        if (window.isOpen()) {
-            sf::sleep(sf::seconds(1.0f / FRAME_RATE));
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            renderable.render();
-            check_gl_error();
-
-            glUseProgram(0);
-            glBindVertexArray(0);
-            gui.draw();
-            window.display();
-        }
+        sf::sleep(sf::seconds(1.0f / FRAME_RATE));
     }
 
     printf("Cleaning up...\n");
