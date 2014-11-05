@@ -2,6 +2,9 @@
 #include "TetrahedralViewer.h"
 
 #define PI 3.14159f
+#define THEME_CONFIG_FILE "assets/widgets/Black.conf"
+#define UINT_32_MAX ((unsigned int) 0xffffffff)
+
 
 enum callback_ids {
     PER_VERTEX_COLORING,
@@ -30,43 +33,39 @@ void TetrahedralViewer::init(int window_width, int window_height, float fov) {
     glBindVertexArray(0);
 
     per_vertex = tgui::RadioButton::Ptr(*gui);
-    per_vertex->load("assets/widgets/Black.conf");
+    per_vertex->load(THEME_CONFIG_FILE);
     per_vertex->setText("Per vertex colring");
     per_vertex->setPosition(20, 100);
     per_vertex->check();
-    per_vertex->bindCallback(tgui::Button::LeftMouseClicked);
-    per_vertex->setCallbackId(PER_VERTEX_COLORING);
 
     per_face = tgui::RadioButton::Ptr(*gui);
-    per_face->load("assets/widgets/Black.conf");
+    per_face->load(THEME_CONFIG_FILE);
     per_face->setText("Per face coloring");
     per_face->setPosition(20, 140);
-    per_face->bindCallback(tgui::Button::LeftMouseClicked);
-    per_face->setCallbackId(PER_FACE_COLORING);
 
     outside_toggle = tgui::Checkbox::Ptr(*gui);
-    outside_toggle->load("assets/widgets/Black.conf");
+    outside_toggle->load(THEME_CONFIG_FILE);
     outside_toggle->setText("Display outside faces");
     outside_toggle->setPosition(20, 180);
-    outside_toggle->check();
-    outside_toggle->bindCallback(tgui::Button::LeftMouseClicked);
-    outside_toggle->setCallbackId(OUTSIDE_TOGGLE);
 
     inside_toggle = tgui::Checkbox::Ptr(*gui);
-    inside_toggle->load("assets/widgets/Black.conf");
+    inside_toggle->load(THEME_CONFIG_FILE);
     inside_toggle->setText("Display inside faces");
     inside_toggle->setPosition(20, 220);
-    inside_toggle->check();
-    inside_toggle->bindCallback(tgui::Button::LeftMouseClicked);
-    inside_toggle->setCallbackId(INSIDE_TOGGLE);
 
     interface_toggle = tgui::Checkbox::Ptr(*gui);
-    interface_toggle->load("assets/widgets/Black.conf");
+    interface_toggle->load(THEME_CONFIG_FILE);
     interface_toggle->setText("Display interface faces");
     interface_toggle->setPosition(20, 260);
     interface_toggle->check();
-    interface_toggle->bindCallback(tgui::Button::LeftMouseClicked);
-    interface_toggle->setCallbackId(INTERFACE_TOGGLE);
+
+    opacity_slider = tgui::Slider::Ptr(*gui);
+    opacity_slider->load(THEME_CONFIG_FILE);
+    opacity_slider->setVerticalScroll(false);
+    opacity_slider->setPosition(20, 300);
+    opacity_slider->setSize(300, 25);
+    opacity_slider->setValue(UINT_32_MAX * 0.2);
+    opacity_slider->setMaximum(UINT_32_MAX);
 }
 
 void TetrahedralViewer::handle_event(sf::Event & event) {
@@ -106,5 +105,8 @@ void TetrahedralViewer::update() {
     renderable->bind_uniform(&data, SCALAR_INT, 1, "display_inside");
     data = interface_toggle->isChecked();
     renderable->bind_uniform(&data, SCALAR_INT, 1, "display_interface");
+
+    float opacity = ((float) opacity_slider->getValue()) / UINT_32_MAX;
+    renderable->bind_uniform(&opacity, SCALAR_FLOAT, 1, "opacity");
 }
 
