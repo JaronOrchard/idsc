@@ -5,15 +5,6 @@
 #define THEME_CONFIG_FILE "assets/widgets/Black.conf"
 #define UINT_32_MAX ((unsigned int) 0xffffffff)
 
-
-enum callback_ids {
-    PER_VERTEX_COLORING,
-    PER_FACE_COLORING,
-    OUTSIDE_TOGGLE,
-    INSIDE_TOGGLE,
-    INTERFACE_TOGGLE
-};
-
 TetrahedralViewer::TetrahedralViewer(Renderable * r, tgui::Gui * g) {
     renderable = r;
     gui = g;
@@ -59,10 +50,16 @@ void TetrahedralViewer::init(int window_width, int window_height, float fov) {
     interface_toggle->setPosition(20, 260);
     interface_toggle->check();
 
+    error_toggle = tgui::Checkbox::Ptr(*gui);
+    error_toggle->load(THEME_CONFIG_FILE);
+    error_toggle->setText("Display invalid faces");
+    error_toggle->setPosition(20, 300);
+    interface_toggle->check();
+
     opacity_slider = tgui::Slider::Ptr(*gui);
     opacity_slider->load(THEME_CONFIG_FILE);
     opacity_slider->setVerticalScroll(false);
-    opacity_slider->setPosition(20, 300);
+    opacity_slider->setPosition(20, 340);
     opacity_slider->setSize(300, 25);
     opacity_slider->setValue(UINT_32_MAX * 0.2);
     opacity_slider->setMaximum(UINT_32_MAX);
@@ -105,6 +102,8 @@ void TetrahedralViewer::update() {
     renderable->bind_uniform(&data, SCALAR_INT, 1, "display_inside");
     data = interface_toggle->isChecked();
     renderable->bind_uniform(&data, SCALAR_INT, 1, "display_interface");
+    data = error_toggle->isChecked();
+    renderable->bind_uniform(&data, SCALAR_INT, 1, "display_error");
 
     float opacity = ((float) opacity_slider->getValue()) / UINT_32_MAX;
     renderable->bind_uniform(&opacity, SCALAR_FLOAT, 1, "opacity");

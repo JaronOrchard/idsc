@@ -6,10 +6,11 @@ layout(triangle_strip, max_vertices=3) out;
 out vec3 color;
 noperspective out vec3 dist;
 
-uniform vec3 STATUS_COLS[3] = {
+uniform vec3 STATUS_COLS[4] = {
     vec3(1.0, 0.0, 0.0),
     vec3(0.0, 1.0, 0.0),
-    vec3(0.0, 0.0, 1.0)
+    vec3(0.0, 0.0, 1.0),
+    vec3(1.0, 1.0, 0.0)
 };
 
 uniform vec2 screen_dimensions;
@@ -17,21 +18,30 @@ uniform bool per_vertex_coloring;
 uniform bool display_outside;
 uniform bool display_inside;
 uniform bool display_interface;
+uniform bool display_error;
 
 // This is copied from tetmesh.cpp
 int get_face_status() {
-    if (vert_status[0] == 0 || vert_status[1] == 0 || vert_status[2] == 0) {
-        return 0; // Tet is inside
-    } else if (vert_status[0] == 1 || vert_status[1] == 1 || vert_status[2] == 1) {
-        return 1; // Tet is outside
+    bool is_inside = vert_status[0] == 0 || vert_status[1] == 0 || vert_status[2] == 0;
+    bool is_outside = vert_status[0] == 1 || vert_status[1] == 1 || vert_status[2] == 1;
+    if (is_inside && is_outside) {
+        // error
+        return 4;
+    } else if (is_inside) {
+        return 0;
+    } else if (is_outside) {
+        return 1;
     } else {
-        return 2; // Tet is on the boundary
+        return 2;
     }
 }
 
 void main() {
     int status = get_face_status();
-    if ((status == 0 && display_inside) || (status == 1 && display_outside) || (status == 2 && display_interface)) {
+    if ((status == 0 && display_inside) ||
+        (status == 1 && display_outside) ||
+        (status == 2 && display_interface) ||
+        (status == 4 && display_error)) {
         color = STATUS_COLS[status];
 
         vec2 ab = vec2(gl_in[0].gl_Position - gl_in[1].gl_Position);

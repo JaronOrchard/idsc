@@ -29,6 +29,7 @@ class TetrahedralViewer {
         tgui::Checkbox::Ptr outside_toggle;
         tgui::Checkbox::Ptr inside_toggle;
         tgui::Checkbox::Ptr interface_toggle;
+        tgui::Checkbox::Ptr error_toggle;
         tgui::Slider::Ptr opacity_slider;
 
         glm::mat4 model_transform;
