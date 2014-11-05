@@ -30,7 +30,7 @@ TetMesh::~TetMesh() {
     // nothing to clean up
 }
 
-// assumes interface will not evolve beyod [-10, 10]^3 and encloses the point (0, 0, 0)
+// assumes interface will not evolve beyond [-10, 10]^3 and encloses the point (0, 0, 0)
 TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     tetgenio * inner_input = IndexedFaceSet::to_tetgenio(ifs);
 
@@ -115,12 +115,12 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     int inner_num_v = inner_output.numberofpoints - orig_num_v;
 
     int num_v = orig_num_v + outer_num_v + inner_num_v;
-	std::vector<REAL> vertices;
-	std::vector<REAL> targets;
-	std::vector<short> statuses;
-	vertices.resize(num_v * 3);
-	targets.resize(num_v * 3);
-	statuses.resize(num_v);
+    std::vector<REAL> vertices;
+    std::vector<REAL> targets;
+    std::vector<short> statuses;
+    vertices.resize(num_v * 3);
+    targets.resize(num_v * 3);
+    statuses.resize(num_v);
     
     for (int i = 0; i < orig_num_v; i++) {
         vertices[i * 3] = inner_output.pointlist[i * 3];
@@ -147,8 +147,8 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
 
     int inner_num_t = inner_output.numberoftetrahedra;
     int num_t = outer_output.numberoftetrahedra + inner_num_t;
-	std::vector<int> tetrahedra;
-	tetrahedra.resize(num_t * 4);
+    std::vector<int> tetrahedra;
+    tetrahedra.resize(num_t * 4);
     for (int i = 0; i < inner_num_t; i++) {
         for (int j = 0; j < 4; j++) {
             tetrahedra[i * 4 + j] = inner_output.tetrahedronlist[i * 4 + j];
@@ -171,32 +171,32 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
 }
 
 TetMesh * TetMesh::create_debug_tetmesh() {
-	int num_v = 5;
-	int num_t = 2;
-	std::vector<REAL> vertices;
-	std::vector<REAL> targets;
-	std::vector<short> statuses;
-	std::vector<int> tetrahedra;
-	vertices.resize(num_v * 3);
-	targets.resize(num_v * 3);
-	statuses.resize(num_v);
+    int num_v = 5;
+    int num_t = 2;
+    std::vector<REAL> vertices;
+    std::vector<REAL> targets;
+    std::vector<short> statuses;
+    std::vector<int> tetrahedra;
+    vertices.resize(num_v * 3);
+    targets.resize(num_v * 3);
+    statuses.resize(num_v);
     tetrahedra.resize(num_t * 4);
     
-	vertices[0] = 0;  vertices[1] = 0;   vertices[2] = 0;  // (0, 0, 0)
-	vertices[3] = 6;  vertices[4] = 6;   vertices[5] = 5;  // (6, 6, 5)
-	vertices[6] = -6; vertices[7] = 6;   vertices[8] = 5;  // (-6, 6, 5)
-	vertices[9] = 0;  vertices[10] = -6; vertices[11] = 5; // (0, -6, 5)
-	vertices[12] = 0; vertices[13] = 0;  vertices[14] = 10; // (0, 0, 1)
+    vertices[0] = 0;  vertices[1] = 0;   vertices[2] = 0;  // (0, 0, 0)
+    vertices[3] = 6;  vertices[4] = 6;   vertices[5] = 5;  // (6, 6, 5)
+    vertices[6] = -6; vertices[7] = 6;   vertices[8] = 5;  // (-6, 6, 5)
+    vertices[9] = 0;  vertices[10] = -6; vertices[11] = 5; // (0, -6, 5)
+    vertices[12] = 0; vertices[13] = 0;  vertices[14] = 10; // (0, 0, 1)
 
-	for (int i = 0; i < num_v*3; i++) { targets[i] = vertices[i]; }
-	targets[14] = 2.5;
+    for (int i = 0; i < num_v*3; i++) { targets[i] = vertices[i]; }
+    targets[14] = 2.5;
 
-	for (int i = 0; i < num_v; i++) { statuses[i] = 2; }
-	
-	tetrahedra[0] = 0; tetrahedra[1] = 1; tetrahedra[2] = 2; tetrahedra[3] = 3;
-	tetrahedra[4] = 4; tetrahedra[5] = 1; tetrahedra[6] = 2; tetrahedra[7] = 3;
+    for (int i = 0; i < num_v; i++) { statuses[i] = 2; }
+    
+    tetrahedra[0] = 0; tetrahedra[1] = 1; tetrahedra[2] = 2; tetrahedra[3] = 3;
+    tetrahedra[4] = 4; tetrahedra[5] = 1; tetrahedra[6] = 2; tetrahedra[7] = 3;
 
-	return new TetMesh(num_v, vertices, statuses, targets, num_t, tetrahedra);
+    return new TetMesh(num_v, vertices, statuses, targets, num_t, tetrahedra);
 }
 
 void TetMesh::save(std::string object_name) {
@@ -272,7 +272,7 @@ bool TetMesh::advect() {
     };
     int num_vertices_at_target = 0;
     for (int i = 0; i < num_vertices; i++) {
-		vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
+        vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
         // TODO: for performance, can keep flag of whether at target and calculate this in else
         REAL target_distance = vec_length(velocity);
         // this vertex is already moved
@@ -282,10 +282,10 @@ bool TetMesh::advect() {
             // normalize velocity
             vec_divide(velocity, velocity, target_distance);
             DistanceMovableInfo dminfo = get_distance_movable(i, velocity);
-			if (dminfo.distance < EPSILON) {
+            if (dminfo.distance < EPSILON) {
                 std::cout << "warning: unable to move vertex " << i << ", exiting to avoid an infinite loop" << std::endl;
                 return true;
-			} else if (dminfo.distance >= target_distance) {
+            } else if (dminfo.distance >= target_distance) {
                 memcpy(&vertices[i * 3], &vertex_targets[i * 3], 3 * sizeof(REAL));
             } else {
                 vec_scale(velocity, velocity, dminfo.distance);
@@ -293,12 +293,12 @@ bool TetMesh::advect() {
                 vertices[i * 3 + 1] += velocity[1];
                 vertices[i * 3 + 2] += velocity[2];
             }
-			// if the vertex has not reached its target, queue the tet for subdivision
-			vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
-			target_distance = vec_length(velocity);
-			if (target_distance >= EPSILON) {
-				pending_subdivisions.push_back(std::pair<int, int>(dminfo.tet_index, i));
-			}
+            // if the vertex has not reached its target, queue the tet for subdivision
+            vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
+            target_distance = vec_length(velocity);
+            if (target_distance >= EPSILON) {
+                pending_subdivisions.push_back(std::pair<int, int>(dminfo.tet_index, i));
+            }
         }
     }
     return num_vertices_at_target == num_vertices;
@@ -306,7 +306,7 @@ bool TetMesh::advect() {
 
 TetMesh::DistanceMovableInfo TetMesh::get_distance_movable(int vertex_index, REAL * velocity) {
     DistanceMovableInfo dminfo;
-	static REAL plane[] = {
+    static REAL plane[] = {
         0, 0, 0, 0
     };
     // TODO: for performance, can make inverted index so vertices know about tets they're in
@@ -329,11 +329,11 @@ TetMesh::DistanceMovableInfo TetMesh::get_distance_movable(int vertex_index, REA
                         break;
                 }
                 REAL distance = intersect_plane(plane, &vertices[vertex_index * 3], velocity);
-				if (distance > 0 && (distance < dminfo.distance || dminfo.distance == -1)) {
-					dminfo.distance = distance;
-					dminfo.tet_index = i;
+                if (distance > 0 && (distance < dminfo.distance || dminfo.distance == -1)) {
+                    dminfo.distance = distance;
+                    dminfo.tet_index = i;
                 }
-				break;
+                break;
             }
         }
     }
@@ -364,11 +364,11 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 }
 
 void TetMesh::retesselate() {
-	while (!pending_subdivisions.empty()) {
-		std::pair<int, int> next_subdivision = pending_subdivisions.back();
-		pending_subdivisions.pop_back();
-		subdivide_opposite_tet(next_subdivision.first, next_subdivision.second);
-	}
+    while (!pending_subdivisions.empty()) {
+        std::pair<int, int> next_subdivision = pending_subdivisions.back();
+        pending_subdivisions.pop_back();
+        subdivide_opposite_tet(next_subdivision.first, next_subdivision.second);
+    }
 }
 
 void TetMesh::bind_attributes(Renderable & renderable) {
@@ -413,19 +413,19 @@ void TetMesh::bind_attributes(Renderable & renderable) {
  * a vector of ints comprised of the OTHER three vertices in that tet.
  */
 std::vector<int> TetMesh::get_other_vertices(int tet, int vertex) {
-	std::vector<int> v;
-	if (tet < 0 || tet >= num_tets) {
-		std::cerr << "** ERROR in get_other_vertices() - Tet index does not exist" << std::endl;
-		return v;
-	}
-	for (int i = tet*4; i < tet*4+4; i++) {
-		if (tets[i] == vertex) { continue; }
-		v.push_back(tets[i]);
-	}
-	if (v.size() > 3) {
-		std::cerr << "** ERROR in get_other_vertices() - Given tet does not contain given vertex" << std::endl;
-	}
-	return v;
+    std::vector<int> v;
+    if (tet < 0 || tet >= num_tets) {
+        std::cerr << "** ERROR in get_other_vertices() - Tet index does not exist" << std::endl;
+        return v;
+    }
+    for (int i = tet*4; i < tet*4+4; i++) {
+        if (tets[i] == vertex) { continue; }
+        v.push_back(tets[i]);
+    }
+    if (v.size() > 3) {
+        std::cerr << "** ERROR in get_other_vertices() - Given tet does not contain given vertex" << std::endl;
+    }
+    return v;
 }
 
 /*
@@ -433,16 +433,16 @@ std::vector<int> TetMesh::get_other_vertices(int tet, int vertex) {
  * the tet that shares the OTHER three out of four vertices in the tet.
  */
 int TetMesh::get_opposite_tet(int tet, int vertex) {
-	std::vector<int> v = get_other_vertices(tet, vertex);
-	for (int i = 0; i < num_tets; i++) {
-		if (tets[i*4] != vertex && tets[i*4+1] != vertex && tets[i*4+2] != vertex && tets[i*4+3] != vertex &&
-			(tets[i*4] == v[0] || tets[i*4+1] == v[0] || tets[i*4+2] == v[0] || tets[i*4+3] == v[0]) &&
-			(tets[i*4] == v[1] || tets[i*4+1] == v[1] || tets[i*4+2] == v[1] || tets[i*4+3] == v[1]) &&
-			(tets[i*4] == v[2] || tets[i*4+1] == v[2] || tets[i*4+2] == v[2] || tets[i*4+3] == v[2])) {
-				return i;
-		}
-	}
-	return -1; // tet not found
+    std::vector<int> v = get_other_vertices(tet, vertex);
+    for (int i = 0; i < num_tets; i++) {
+        if (tets[i*4] != vertex && tets[i*4+1] != vertex && tets[i*4+2] != vertex && tets[i*4+3] != vertex &&
+            (tets[i*4] == v[0] || tets[i*4+1] == v[0] || tets[i*4+2] == v[0] || tets[i*4+3] == v[0]) &&
+            (tets[i*4] == v[1] || tets[i*4+1] == v[1] || tets[i*4+2] == v[1] || tets[i*4+3] == v[1]) &&
+            (tets[i*4] == v[2] || tets[i*4+1] == v[2] || tets[i*4+2] == v[2] || tets[i*4+3] == v[2])) {
+                return i;
+        }
+    }
+    return -1; // tet not found
 }
 
 /*
@@ -450,13 +450,13 @@ int TetMesh::get_opposite_tet(int tet, int vertex) {
  * return the opposite vertex of the opposite tet.
  */
 int TetMesh::get_opposite_vertex(int tet, int vertex) {
-	std::vector<int> v = get_other_vertices(tet, vertex);
-	int opposite_tet = get_opposite_tet(tet, vertex);
-	for (int i = opposite_tet*4; i <= opposite_tet*4+4; i++) {
-		if (tets[i] == v[0] || tets[i] == v[1] || tets[i] == v[2]) { continue; }
-		return tets[i];
-	}
-	return -1; // vertex not found
+    std::vector<int> v = get_other_vertices(tet, vertex);
+    int opposite_tet = get_opposite_tet(tet, vertex);
+    for (int i = opposite_tet*4; i <= opposite_tet*4+4; i++) {
+        if (tets[i] == v[0] || tets[i] == v[1] || tets[i] == v[2]) { continue; }
+        return tets[i];
+    }
+    return -1; // vertex not found
 }
 
 /*
@@ -465,37 +465,37 @@ int TetMesh::get_opposite_vertex(int tet, int vertex) {
  * and removing the original tet.
  */
 void TetMesh::subdivide_opposite_tet(int tet, int vertex) {
-	std::vector<int> v = get_other_vertices(tet, vertex);
-	int opposite_tet = get_opposite_tet(tet, vertex);
-	int opposite_vertex = get_opposite_vertex(tet, vertex);
-	int new_vertex = num_vertices;
+    std::vector<int> v = get_other_vertices(tet, vertex);
+    int opposite_tet = get_opposite_tet(tet, vertex);
+    int opposite_vertex = get_opposite_vertex(tet, vertex);
+    int new_vertex = num_vertices;
 
-	// Create a new vertex on the opposite side and set it up:
-	num_vertices++;
-	for (int i = vertex*3; i < vertex*3+3; i++) {
-		vertices.push_back(vertices[i]);
-		vertex_targets.push_back(vertex_targets[i]);
-	}
-	vertex_statuses.push_back(vertex_statuses[vertex]);
-	
-	// Update the flattened vertex's target, and its status if necessary
-	for (int i = vertex*3; i < vertex*3+3; i++) {
-		vertex_targets[i] = vertices[i];
-	}
-	if (vertex_statuses[vertex] == 2) {
-		vertex_statuses[vertex] = (vertex_statuses[opposite_vertex] == 1 ? 0 : 1);
-	}
-	
-	// Subdivide the opposite_tet into 6 new ones:
-	num_tets += 6;
-	tets.push_back(v[0]); tets.push_back(v[1]); tets.push_back(new_vertex); tets.push_back(vertex);
-	tets.push_back(v[0]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(vertex);
-	tets.push_back(v[1]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(vertex);
-	tets.push_back(v[0]); tets.push_back(v[1]); tets.push_back(new_vertex); tets.push_back(opposite_vertex);
-	tets.push_back(v[0]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(opposite_vertex);
-	tets.push_back(v[1]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(opposite_vertex);
-	
-	// *** MARK THE ORIGINAL TET AS DEAD
-	// *** MARK THE OPPOSITE_TET AS DEAD
+    // Create a new vertex on the opposite side and set it up:
+    num_vertices++;
+    for (int i = vertex*3; i < vertex*3+3; i++) {
+        vertices.push_back(vertices[i]);
+        vertex_targets.push_back(vertex_targets[i]);
+    }
+    vertex_statuses.push_back(vertex_statuses[vertex]);
+    
+    // Update the flattened vertex's target, and its status if necessary
+    for (int i = vertex*3; i < vertex*3+3; i++) {
+        vertex_targets[i] = vertices[i];
+    }
+    if (vertex_statuses[vertex] == 2) {
+        vertex_statuses[vertex] = (vertex_statuses[opposite_vertex] == 1 ? 0 : 1);
+    }
+    
+    // Subdivide the opposite_tet into 6 new ones:
+    num_tets += 6;
+    tets.push_back(v[0]); tets.push_back(v[1]); tets.push_back(new_vertex); tets.push_back(vertex);
+    tets.push_back(v[0]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(vertex);
+    tets.push_back(v[1]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(vertex);
+    tets.push_back(v[0]); tets.push_back(v[1]); tets.push_back(new_vertex); tets.push_back(opposite_vertex);
+    tets.push_back(v[0]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(opposite_vertex);
+    tets.push_back(v[1]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(opposite_vertex);
+    
+    // *** MARK THE ORIGINAL TET AS DEAD
+    // *** MARK THE OPPOSITE_TET AS DEAD
 
 }
