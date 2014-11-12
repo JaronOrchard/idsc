@@ -57,7 +57,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>../lib/GL;../lib/SFML;../lib/tetgen;../lib/TGUI;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>tgui-d.lib;tet.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;opengl32.lib;glu32.lib;glut32.lib;libgfx.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>tet.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;opengl32.lib;glu32.lib;glut32.lib;libgfx.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;tgui-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -69,7 +69,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../include;../include/tetgen1.5.0;../../../src/render;../../../src/model;../../../src/tetmesh;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include;../include/TGUI;../include/tetgen1.5.0;../../../src/render;../../../src/model;../../../src/tetmesh;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -77,7 +77,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>../lib/GL;../lib/SFML;../lib/tetgen;../lib/TGUI;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>tgui.lib;tet.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;opengl32.lib;glu32.lib;glut32.lib;libgfx.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>tet.lib;sfml-graphics.lib;sfml-window.lib;sfml-system.lib;opengl32.lib;glu32.lib;glut32.lib;libgfx.lib;glew32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;tgui.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -85,6 +85,7 @@
     <ClCompile Include="..\..\..\src\model\IndexedFaceSet.cpp" />
     <ClCompile Include="..\..\..\src\render\Renderable.cpp" />
     <ClCompile Include="..\..\..\src\render\Shader.cpp" />
+    <ClCompile Include="..\..\..\src\render\TetrahedralViewer.cpp" />
     <ClCompile Include="..\..\..\src\tetmesh\tetmesh.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +93,7 @@
     <ClInclude Include="..\..\..\src\render\Renderable.h" />
     <ClInclude Include="..\..\..\src\render\render_utils.h" />
     <ClInclude Include="..\..\..\src\render\Shader.h" />
+    <ClInclude Include="..\..\..\src\render\TetrahedralViewer.h" />
     <ClInclude Include="..\..\..\src\tetmesh\tetmesh.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
