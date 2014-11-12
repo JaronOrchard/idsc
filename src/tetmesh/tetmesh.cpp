@@ -186,7 +186,7 @@ TetMesh * TetMesh::create_debug_tetmesh() {
     vertices[3] = 6;  vertices[4] = 6;   vertices[5] = 5;  // (6, 6, 5)
     vertices[6] = -6; vertices[7] = 6;   vertices[8] = 5;  // (-6, 6, 5)
     vertices[9] = 0;  vertices[10] = -6; vertices[11] = 5; // (0, -6, 5)
-    vertices[12] = 0; vertices[13] = 0;  vertices[14] = 10; // (0, 0, 1)
+    vertices[12] = 0; vertices[13] = 0;  vertices[14] = 10; // (0, 0, 10)
 
     for (int i = 0; i < num_v*3; i++) { targets[i] = vertices[i]; }
     targets[14] = 2.5;
@@ -282,23 +282,19 @@ bool TetMesh::advect() {
             // normalize velocity
             vec_divide(velocity, velocity, target_distance);
             DistanceMovableInfo dminfo = get_distance_movable(i, velocity);
-            if (dminfo.distance < EPSILON) {
+            if (dminfo.distance < EPSILON) { // Vertex can't move but wants to
                 std::cout << "warning: unable to move vertex " << i << ", exiting to avoid an infinite loop" << std::endl;
                 return true;
-            } else if (dminfo.distance >= target_distance) {
+            } else if (dminfo.distance >= target_distance) { // Vertex can move to target
                 memcpy(&vertices[i * 3], &vertex_targets[i * 3], 3 * sizeof(REAL));
-            } else {
-                vec_scale(velocity, velocity, dminfo.distance);
-                vertices[i * 3] += velocity[0];
-                vertices[i * 3 + 1] += velocity[1];
-                vertices[i * 3 + 2] += velocity[2];
+            } else { // Vertex can only move to a face boundary, so subdivide now
+                subdivide_opposite_tet(dminfo.tet_index, i);
             }
-            // if the vertex has not reached its target, queue the tet for subdivision
-            vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
-            target_distance = vec_length(velocity);
-            if (target_distance >= EPSILON) {
-                pending_subdivisions.push_back(std::pair<int, int>(dminfo.tet_index, i));
-            }
+        //// if the vertex has not reached its target, queue the tet for subdivision
+        //vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
+        //target_distance = vec_length(velocity);
+        //if (target_distance >= EPSILON) {
+        //    pending_subdivisions.push_back(std::pair<int, int>(dminfo.tet_index, i));
         }
     }
     return num_vertices_at_target == num_vertices;
@@ -364,11 +360,13 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 }
 
 void TetMesh::retesselate() {
+    /* (Removed as we're doing subdivisions on demand now):
     while (!pending_subdivisions.empty()) {
         std::pair<int, int> next_subdivision = pending_subdivisions.back();
         pending_subdivisions.pop_back();
         subdivide_opposite_tet(next_subdivision.first, next_subdivision.second);
     }
+    */
 }
 
 void TetMesh::bind_attributes(Renderable & renderable) {
@@ -459,43 +457,58 @@ int TetMesh::get_opposite_vertex(int tet, int vertex) {
     return -1; // vertex not found
 }
 
+/**
+ * Given a tet index, averages its four vertices' positions and
+ * creates a new vertex in that spot, returning the new vertex.
+ */
+int TetMesh::create_new_vertex_in_tet_center(int tet) {
+    int new_vertex_index = num_vertices++;
+    vertices.push_back((vertices[tets[tet*4]]   + vertices[tets[tet*4+1]]   + vertices[tets[tet*4+2]]   + vertices[tets[tet*4+3]])   / 4);
+    vertices.push_back((vertices[tets[tet*4]+1] + vertices[tets[tet*4+1]+1] + vertices[tets[tet*4+2]+1] + vertices[tets[tet*4+3]+1]) / 4);
+    vertices.push_back((vertices[tets[tet*4]+2] + vertices[tets[tet*4+1]+2] + vertices[tets[tet*4+2]+2] + vertices[tets[tet*4+3]+2]) / 4);
+    for (int i = new_vertex_index*3; i < new_vertex_index*3+3; i++) {
+        vertex_targets.push_back(vertices[i]);
+    }
+    return new_vertex_index;
+}
+
 /*
  * Given the index of a tet and the index of a vertex (in that tet), subdivides
- * the tet opposite the given vertex into 6 new tets by creating a new vertex
- * and removing the original tet.
+ * the 2 tets adjacent to and opposite the given vertex into 9 new tets by creating
+ * 2 new vertices and removing (replacing) the 2 original tets.
  */
 void TetMesh::subdivide_opposite_tet(int tet, int vertex) {
+    std::cout << "---> SUBDIVIDING TET " << tet << std::endl;
+
     std::vector<int> v = get_other_vertices(tet, vertex);
     int opposite_tet = get_opposite_tet(tet, vertex);
     int opposite_vertex = get_opposite_vertex(tet, vertex);
-    int new_vertex = num_vertices;
 
-    // Create a new vertex on the opposite side and set it up:
-    num_vertices++;
-    for (int i = vertex*3; i < vertex*3+3; i++) {
-        vertices.push_back(vertices[i]);
-        vertex_targets.push_back(vertex_targets[i]);
-    }
-    vertex_statuses.push_back(vertex_statuses[vertex]);
-    
-    // Update the flattened vertex's target, and its status if necessary
-    for (int i = vertex*3; i < vertex*3+3; i++) {
-        vertex_targets[i] = vertices[i];
-    }
-    if (vertex_statuses[vertex] == 2) {
-        vertex_statuses[vertex] = (vertex_statuses[opposite_vertex] == 1 ? 0 : 1);
+    // Create a new vertex in the middle of the opposite tet and set it up:
+    int new_vertex = create_new_vertex_in_tet_center(opposite_tet);
+    for (int i = 0; i < 3; i++) {
+        vertex_targets[new_vertex*3+i] = vertex_targets[vertex*3+i]; // copy vertex target
+        vertex_targets[vertex*3+i] = vertices[vertex*3+i]; // reset old vertex target
     }
     
-    // Subdivide the opposite_tet into 6 new ones:
-    num_tets += 6;
-    tets.push_back(v[0]); tets.push_back(v[1]); tets.push_back(new_vertex); tets.push_back(vertex);
-    tets.push_back(v[0]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(vertex);
-    tets.push_back(v[1]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(vertex);
+    // Modify the original opposite tet to use the new vertex as its top:
+    for (int i = opposite_tet*4; i < opposite_tet*4+4; i++) {
+        if (tets[i] == opposite_vertex) {
+            tets[i] = new_vertex;
+            break;
+        }
+    }
+
+    // Create 3 new tets in the empty space we just created:
+    num_tets += 3;
     tets.push_back(v[0]); tets.push_back(v[1]); tets.push_back(new_vertex); tets.push_back(opposite_vertex);
     tets.push_back(v[0]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(opposite_vertex);
     tets.push_back(v[1]); tets.push_back(v[2]); tets.push_back(new_vertex); tets.push_back(opposite_vertex);
-    
-    // *** MARK THE ORIGINAL TET AS DEAD
-    // *** MARK THE OPPOSITE_TET AS DEAD
 
+    // Fix vertex boundary statuses:
+    vertex_statuses[v[0]] = 2;
+    vertex_statuses[v[1]] = 2;
+    vertex_statuses[v[2]] = 2;
+    vertex_statuses.push_back(2);
+    vertex_statuses[vertex] = (vertex_statuses[opposite_vertex] == 1 ? 0 : 1);
 }

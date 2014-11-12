@@ -51,6 +51,7 @@ private:
 	std::vector<int> get_other_vertices(int tet, int vertex);
 	int get_opposite_tet(int tet, int vertex);
 	int get_opposite_vertex(int tet, int vertex);
+    int create_new_vertex_in_tet_center(int tet);
 	void subdivide_opposite_tet(int tet, int vertex);
     
 };
