@@ -31,7 +31,11 @@ class TetrahedralViewer {
         tgui::Checkbox::Ptr interface_toggle;
         tgui::Checkbox::Ptr error_toggle;
         tgui::Slider::Ptr opacity_slider;
-
+		
+		glm::float32 theta;
+		glm::float32 phi;
+		glm::float32 radius;
+		sf::Vector2i current_pos;
         glm::mat4 model_transform;
         glm::vec3 eye;
         glm::vec3 focus;
@@ -39,6 +43,7 @@ class TetrahedralViewer {
         glm::mat4 view_transform;
         glm::mat4 perspective_transform;
 
+		glm::vec3 set_eye_vector();
 };
 
 #endif

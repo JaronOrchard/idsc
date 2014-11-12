@@ -10,12 +10,24 @@ TetrahedralViewer::TetrahedralViewer(Renderable * r, tgui::Gui * g) {
     gui = g;
 }
 
+glm::vec3 TetrahedralViewer::set_eye_vector()
+{
+	glm::float32 y = radius * glm::sin(theta);
+	glm::float32 x = radius * glm::cos(theta) * glm::cos(phi);
+	glm::float32 z = radius * glm::cos(theta) * glm::sin(phi);
+	return glm::vec3(x, y, z);
+}
+
 void TetrahedralViewer::init(int window_width, int window_height, float fov) {
     glm::vec2 screen_dimensions = glm::vec2(window_width, window_height);
     renderable->bind_uniform(&screen_dimensions[0], VEC2_FLOAT, 1, "screen_dimensions");
     model_transform = glm::mat4();
-    eye = glm::vec3(12, 12, 20);
-    focus = glm::vec3(0, 0, 0);
+	current_pos = sf::Vector2i(0,0);
+	radius = glm::sqrt(static_cast<glm::float32>(12^2 + 12^2 + 20^2));
+	theta = 0.0F;
+	phi = 0.0;
+	eye = set_eye_vector();
+	focus = glm::vec3(0, 0, 0);
     up = glm::vec3(0, 1, 0);
     view_transform = glm::lookAt(eye, focus, up);
     perspective_transform = glm::perspective(fov, ((float) window_width) / window_height, 0.1f, 100.0f);
@@ -74,22 +86,48 @@ void TetrahedralViewer::handle_callback(tgui::Callback & callback) {
 }
 
 void TetrahedralViewer::update() {
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-        eye = glm::rotate(eye, 5 * PI / 180, up);
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) 
+	{
+		phi += 5 * PI / 180;
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-        eye = glm::rotate(eye, -5 * PI / 180, up);
+		phi -= 5 * PI / 180;
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-        eye = 0.9f * eye;
+		radius = .9F * radius;
     }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-        eye = 1.1f * eye;
+		radius = 1.1F * radius;
     }
-    view_transform = glm::lookAt(eye, focus, up);
+	
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+		sf::Vector2i new_pos = sf::Mouse::getPosition();
+		sf::Vector2i diff = new_pos - current_pos;
+		phi += PI * diff.x / 180.0F / 2.0F;
+		theta += PI * diff.y / 180.0F / 2.0F;
+
+		if (theta > PI/2)
+			theta = PI/2;
+		else if (theta < -PI/2)
+			theta = -PI/2;
+	}
+
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+		sf::Vector2i new_pos = sf::Mouse::getPosition();
+		sf::Vector2i diff = new_pos - current_pos;
+		radius += diff.y/6.0;
+		if (radius >= 50)
+			radius = 50;
+		else if (radius < 1)
+			radius = 1;
+	}
+
+	current_pos = sf::Mouse::getPosition();
+	eye = set_eye_vector();
+	view_transform = glm::lookAt(eye, focus, up);
     glm::mat4 MVP = perspective_transform * view_transform * model_transform;
     renderable->bind_uniform(&MVP[0][0], MAT4_FLOAT, 1, "MVP");
 
