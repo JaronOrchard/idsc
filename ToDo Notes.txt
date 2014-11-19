@@ -58,3 +58,29 @@ When splitting an edge:
 4e) Gravestone tet ABDE
 4f) For all edges e in new tet ACDE, add ACDE to edges(e)->tets
 4g) For all edges e in new tet ABCD, add ABCD to edges(e)->tets
+
+sudo:
+split = edge->tets( a->b )
+c = new vertex
+delete all edges in split
+v-e[ c ] = c->a + c->b
+for t in split:
+	get d , e
+	v-e [ d ]  +=  c->d
+	v-e [ e ]  +=  c->e
+	t1 = acde new
+	t2 = abcd new
+	v-e [ c ]  += c->d + c->e
+	gravestone abde
+	add all edfes in t1, t2
+
+	for u->v  in t1
+		add t1 to e-t [ u->v ]
+	for u->v in t2
+		add t2 to e-t [ u->v ]
+
+delete a->b
+for u->v in split
+	for t in e-t [u->v]
+		if t is in split:
+			remove t from e-t [u->v]
