@@ -23,7 +23,7 @@ void TetrahedralViewer::init(int window_width, int window_height, float fov) {
     renderable->bind_uniform(&screen_dimensions[0], VEC2_FLOAT, 1, "screen_dimensions");
     model_transform = glm::mat4();
 	current_pos = sf::Vector2i(0,0);
-	radius = glm::sqrt(static_cast<glm::float32>(12^2 + 12^2 + 20^2));
+	radius = glm::sqrt(static_cast<glm::float32>(500));
 	theta = 0.0F;
 	phi = 0.0;
 	eye = set_eye_vector();
