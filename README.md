@@ -17,4 +17,6 @@ Install Homebrew with the command:
 
     ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
-Install glew with the command: brew install glew
+Install glew with the command:
+
+    brew install glew
