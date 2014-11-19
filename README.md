@@ -13,5 +13,8 @@ To build run:
     python waf build
 
 ###OSX:
-Install Homebrew with the command: ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+Install Homebrew with the command:
+
+    ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
 Install glew with the command: brew install glew
