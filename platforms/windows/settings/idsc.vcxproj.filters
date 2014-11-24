@@ -45,6 +45,9 @@
     <ClCompile Include="..\..\..\src\render\TetrahedralViewer.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\tetmesh\edge.cpp">
+      <Filter>tetmesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\model\IndexedFaceSet.h">
@@ -67,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\util\geometrySet.h">
       <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\tetmesh\edge.h">
+      <Filter>tetmesh</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

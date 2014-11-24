@@ -1,7 +1,7 @@
 
 Jared:
 + Create GeometrySet class
-- Create Edge class
++ Create Edge class
 - Set up gravestones arrays
 - Create vertex->set of edges
 - Create edge->set of tets
