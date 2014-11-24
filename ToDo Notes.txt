@@ -1,6 +1,6 @@
 
 Jared:
-- Create GeometrySet class
++ Create GeometrySet class
 - Create Edge class
 - Set up gravestones arrays
 - Create vertex->set of edges
@@ -84,3 +84,23 @@ for u->v in split
 	for t in e-t [u->v]
 		if t is in split:
 			remove t from e-t [u->v]
+
+
+~~~ Example code for using the GeometrySet class:
+
+GeometrySet<int> gs, gs2;
+for (int i = 3; i < 100; i += 3) { gs.insert(i); }
+for (int i = 5; i < 100; i += 5) { gs2.insert(i); }
+
+const std::vector<int> unioned = gs.unionWith(gs2).getItems();
+const std::vector<int> intersected = gs.intersect(gs2).getItems();
+
+std::cout << "== UNION ==" << std::endl;
+for (size_t i = 0; i < unioned.size(); i++) {
+	std::cout << unioned[i] << ", ";
+}
+std::cout << std::endl << "== INTERSECTION ==" << std::endl;
+for (size_t i = 0; i < intersected.size(); i++) {
+	std::cout << intersected[i] << ", ";
+}
+std::cout << std::endl;
