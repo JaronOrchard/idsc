@@ -29,6 +29,7 @@ TetMesh::TetMesh(int num_vertices, std::vector<REAL> vertices, std::vector<REAL>
     this->tet_statuses = tet_statuses;
     this->vertex_gravestones = vertex_gravestones;
     this->tet_gravestones = tet_gravestones;
+    // *** TODO: Set up vertex_to_tet vector (resize to num_v, each set starts out empty...)
 }
 
 TetMesh::~TetMesh() {

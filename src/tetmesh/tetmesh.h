@@ -48,6 +48,8 @@ private:
     std::vector<gravestone> vertex_gravestones; // ALIVE or DEAD per vertex
     std::vector<gravestone> tet_gravestones;    // ALIVE or DEAD per tet
 
+    std::vector< GeometricSet<int> > vertex_to_tet; // Each vertex has a set of neighboring tets
+
     std::vector< std::pair<int, int> > pending_subdivisions; // pair<tet index, opposite vertex>
     
     struct DistanceMovableInfo {

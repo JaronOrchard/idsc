@@ -3,8 +3,7 @@ Jared:
 + Create GeometrySet class
 + Create Edge class
 + Set up gravestones arrays
-- Create vertex->set of edges
-- Create edge->set of tets
++ Create vertex->set of tets
 
 Philip:
 - Initialize vertex->set of edges and edge->set of tets GeometrySets
