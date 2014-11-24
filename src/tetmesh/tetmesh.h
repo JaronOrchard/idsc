@@ -12,6 +12,11 @@ typedef enum {
     INTERFACE = 2
 } status_t;
 
+typedef enum {
+    ALIVE = 0,
+    DEAD = 1
+} gravestone;
+
 class TetMesh {
 
 public:
@@ -40,6 +45,9 @@ private:
     std::vector<int> tets;              // 4 vertex indices per tet
     std::vector<status_t> tet_statuses;
 
+    std::vector<gravestone> vertex_gravestones; // ALIVE or DEAD per vertex
+    std::vector<gravestone> tet_gravestones;    // ALIVE or DEAD per tet
+
     std::vector< std::pair<int, int> > pending_subdivisions; // pair<tet index, opposite vertex>
     
     struct DistanceMovableInfo {
@@ -49,7 +57,8 @@ private:
     };
 
     TetMesh(int num_vertices, std::vector<REAL> vertices, std::vector<REAL> vertex_velocities,
-            int num_tets, std::vector<int> tets, std::vector<status_t> tet_statuses);
+            int num_tets, std::vector<int> tets, std::vector<status_t> tet_statuses,
+            std::vector<gravestone> vertex_gravestones, std::vector<gravestone> tet_gravestones);
     bool advect();
     void retesselate();
     DistanceMovableInfo get_distance_movable(int vertex_index, REAL * velocity);
