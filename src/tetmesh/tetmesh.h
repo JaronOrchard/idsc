@@ -3,6 +3,7 @@
 
 #include "IndexedFaceSet.h"
 #include "tetgen.h"
+#include "geometrySet.h"
 #include <string>
 #include <vector>
 
@@ -15,7 +16,7 @@ typedef enum {
 typedef enum {
     ALIVE = 0,
     DEAD = 1
-} gravestone;
+} gravestone_t;
 
 class TetMesh {
 
@@ -45,10 +46,10 @@ private:
     std::vector<int> tets;              // 4 vertex indices per tet
     std::vector<status_t> tet_statuses;
 
-    std::vector<gravestone> vertex_gravestones; // ALIVE or DEAD per vertex
-    std::vector<gravestone> tet_gravestones;    // ALIVE or DEAD per tet
+    std::vector<gravestone_t> vertex_gravestones; // ALIVE or DEAD per vertex
+    std::vector<gravestone_t> tet_gravestones;    // ALIVE or DEAD per tet
 
-    std::vector< GeometricSet<int> > vertex_to_tet; // Each vertex has a set of neighboring tets
+    std::vector< GeometrySet<int> > vertex_to_tet; // Each vertex has a set of neighboring tets
 
     std::vector< std::pair<int, int> > pending_subdivisions; // pair<tet index, opposite vertex>
     
@@ -59,8 +60,7 @@ private:
     };
 
     TetMesh(int num_vertices, std::vector<REAL> vertices, std::vector<REAL> vertex_velocities,
-            int num_tets, std::vector<int> tets, std::vector<status_t> tet_statuses,
-            std::vector<gravestone> vertex_gravestones, std::vector<gravestone> tet_gravestones);
+            int num_tets, std::vector<int> tets, std::vector<status_t> tet_statuses);
     bool advect();
     void retesselate();
     DistanceMovableInfo get_distance_movable(int vertex_index, REAL * velocity);

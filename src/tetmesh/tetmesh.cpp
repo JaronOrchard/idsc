@@ -19,16 +19,15 @@
 #define absolute(a) (a < 0 ? -a : a)
 
 TetMesh::TetMesh(int num_vertices, std::vector<REAL> vertices, std::vector<REAL> vertex_targets,
-            int num_tets, std::vector<int> tets, std::vector<status_t> tet_statuses,
-            std::vector<gravestone> vertex_gravestones, std::vector<gravestone> tet_gravestones) {
+            int num_tets, std::vector<int> tets, std::vector<status_t> tet_statuses) {
     this->num_vertices = num_vertices;
     this->vertices = vertices;
     this->vertex_targets = vertex_targets;
     this->num_tets = num_tets;
     this->tets = tets;
     this->tet_statuses = tet_statuses;
-    this->vertex_gravestones = vertex_gravestones;
-    this->tet_gravestones = tet_gravestones;
+    this->vertex_gravestones.resize(num_vertices, ALIVE);
+    this->tet_gravestones.resize(num_tets, ALIVE);
     // *** TODO: Set up vertex_to_tet vector (resize to num_v, each set starts out empty...)
 }
 
@@ -163,12 +162,7 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     delete inner_input;
     delete outer_input;
 
-    std::vector<gravestone> vertex_gravestones;
-    std::vector<gravestone> tet_gravestones;
-    vertex_gravestones.resize(num_v, gravestone::ALIVE);
-    tet_gravestones.resize(num_t, gravestone::ALIVE);
-    
-    return new TetMesh(num_v, vertices, targets, num_t, tetrahedra, statuses, vertex_gravestones, tet_gravestones);
+    return new TetMesh(num_v, vertices, targets, num_t, tetrahedra, statuses);
 }
 
 TetMesh * TetMesh::create_debug_tetmesh() {
@@ -178,8 +172,6 @@ TetMesh * TetMesh::create_debug_tetmesh() {
     std::vector<REAL> targets;
     std::vector<int> tetrahedra;
     std::vector<status_t> statuses;
-    std::vector<gravestone> vertex_gravestones;
-    std::vector<gravestone> tet_gravestones;
     vertices.resize(num_v * 3);
     targets.resize(num_v * 3);
     tetrahedra.resize(num_t * 4);
@@ -200,10 +192,7 @@ TetMesh * TetMesh::create_debug_tetmesh() {
     tetrahedra[0] = 0; tetrahedra[1] = 1; tetrahedra[2] = 2; tetrahedra[3] = 3;
     tetrahedra[4] = 4; tetrahedra[5] = 1; tetrahedra[6] = 2; tetrahedra[7] = 3;
 
-    vertex_gravestones.resize(num_v, gravestone::ALIVE);
-    tet_gravestones.resize(num_t, gravestone::ALIVE);
-    
-    return new TetMesh(num_v, vertices, targets, num_t, tetrahedra, statuses, vertex_gravestones, tet_gravestones);
+    return new TetMesh(num_v, vertices, targets, num_t, tetrahedra, statuses);
 }
 
 // ***

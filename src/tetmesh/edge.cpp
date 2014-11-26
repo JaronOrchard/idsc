@@ -12,8 +12,8 @@ Edge::Edge(unsigned int vertex1, unsigned int vertex2) {
 
 edge_id Edge::getEdgeId() {
     edge_id id = 0; // edge_id is an unsigned long long
-    id |= v1;
+    id |= (uint32_t)v1;
     id = id << 32;
-    id |= v2;
+    id |= (uint32_t)v2;
     return id;
 }
