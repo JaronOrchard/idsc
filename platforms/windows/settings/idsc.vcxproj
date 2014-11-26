@@ -51,7 +51,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../include;../include/TGUI;../include/tetgen1.5.0;../../../src/render;../../../src/model;../../../src/tetmesh;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include;../include/TGUI;../include/tetgen1.5.0;../../../src/render;../../../src/model;../../../src/tetmesh;../../../src/util;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -69,7 +69,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>../include;../include/TGUI;../include/tetgen1.5.0;../../../src/render;../../../src/model;../../../src/tetmesh;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../include;../include/TGUI;../include/tetgen1.5.0;../../../src/render;../../../src/model;../../../src/tetmesh;../../../src/util;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -86,6 +86,7 @@
     <ClCompile Include="..\..\..\src\render\Renderable.cpp" />
     <ClCompile Include="..\..\..\src\render\Shader.cpp" />
     <ClCompile Include="..\..\..\src\render\TetrahedralViewer.cpp" />
+    <ClCompile Include="..\..\..\src\tetmesh\edge.cpp" />
     <ClCompile Include="..\..\..\src\tetmesh\tetmesh.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -94,7 +95,9 @@
     <ClInclude Include="..\..\..\src\render\render_utils.h" />
     <ClInclude Include="..\..\..\src\render\Shader.h" />
     <ClInclude Include="..\..\..\src\render\TetrahedralViewer.h" />
+    <ClInclude Include="..\..\..\src\tetmesh\edge.h" />
     <ClInclude Include="..\..\..\src\tetmesh\tetmesh.h" />
+    <ClInclude Include="..\..\..\src\util\geometrySet.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -22,6 +22,9 @@
     <Filter Include="tetmesh">
       <UniqueIdentifier>{4abfe97f-1624-4779-8900-6762bb34fb09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{9581c473-7048-4610-9c6b-7a94856935d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\main.cpp">
@@ -42,6 +45,9 @@
     <ClCompile Include="..\..\..\src\render\TetrahedralViewer.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\tetmesh\edge.cpp">
+      <Filter>tetmesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\model\IndexedFaceSet.h">
@@ -61,6 +67,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\render\TetrahedralViewer.h">
       <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\util\geometrySet.h">
+      <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\tetmesh\edge.h">
+      <Filter>tetmesh</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

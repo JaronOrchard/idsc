@@ -14,6 +14,7 @@
 #include "TetrahedralViewer.h"
 #include "render_utils.h"
 #include "tetmesh/tetmesh.h"
+#include "geometrySet.h"
 
 #define WINDOW_WIDTH 1440
 #define WINDOW_HEIGHT 810
