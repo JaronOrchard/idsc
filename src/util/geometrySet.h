@@ -82,7 +82,7 @@ public:
     /**
      * Returns a set that contains all elements of the current and given sets without any shared elements
      */
-    GeometrySet<T> outersect(GeometrySet<T> setToOutersect) const {
+    GeometrySet<T> outersectWith(GeometrySet<T> setToOutersect) const {
         GeometrySet<T> newSet;
         for (size_t i = 0; i < items.size(); i++) {
             if (!setToOutersect.contains(items[i])) {

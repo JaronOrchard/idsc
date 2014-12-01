@@ -28,8 +28,8 @@ TetMesh::TetMesh(std::vector<REAL> vertices, std::vector<REAL> vertex_targets,
     this->tet_statuses = tet_statuses;
     this->vertex_tet_map = vertex_tet_map;
 
-    vertex_gravestones.resize(vertices.size() / 3, gravestone::ALIVE);
-    tet_gravestones.resize(tets.size() / 3, gravestone::ALIVE);
+    vertex_gravestones.resize(vertices.size() / 3, ALIVE);
+    tet_gravestones.resize(tets.size() / 3, ALIVE);
 }
 
 TetMesh::~TetMesh() {
@@ -372,7 +372,7 @@ Edge TetMesh::get_opposite_edge(unsigned int tet_id, Edge e) {
 void TetMesh::split_edge(Edge edge) {
     unsigned int v1 = edge.getV1();
     unsigned int v2 = edge.getV2();
-    GeometrySet<unsigned int> split = vertex_tet_map[v1].intersect(vertex_tet_map[v2]);
+    GeometrySet<unsigned int> split = vertex_tet_map[v1].intersectWith(vertex_tet_map[v2]);
 
     unsigned int c = vertices.size() / 3;
     vertices.resize((c + 1) * 3);
@@ -391,8 +391,8 @@ void TetMesh::split_edge(Edge edge) {
 void TetMesh::collapse_edge(Edge edge) {
     unsigned int v1 = edge.getV1();
     unsigned int v2 = edge.getV2();
-    GeometrySet<unsigned int> deleted = vertex_tet_map[v1].intersect(vertex_tet_map[v2]);
-    GeometrySet<unsigned int> affected = vertex_tet_map[v1].outersect(vertex_tet_map[v2]);
+    GeometrySet<unsigned int> deleted = vertex_tet_map[v1].intersectWith(vertex_tet_map[v2]);
+    GeometrySet<unsigned int> affected = vertex_tet_map[v1].outersectWith(vertex_tet_map[v2]);
 
     unsigned int c = vertices.size() / 3;
     vertices.resize((c + 1) * 3);

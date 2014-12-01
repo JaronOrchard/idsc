@@ -5,7 +5,6 @@
 #include "util/geometry.h"
 #include "util/geometrySet.h"
 #include "tetgen.h"
-#include "geometrySet.h"
 #include <string>
 #include <vector>
 
