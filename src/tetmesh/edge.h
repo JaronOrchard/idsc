@@ -1,7 +1,9 @@
 #ifndef EDGE_H
 #define EDGE_H
 
-typedef unsigned long long edge_id;
+#include <stdint.h>
+
+typedef uint64_t edge_id;
 
 class Edge {
 

@@ -18,6 +18,13 @@ public:
     GeometrySet() { }
 
     /**
+     * Constructor that takes a vector of items
+     */
+    GeometrySet(std::vector<T> items) {
+        this->items = items;
+    }
+
+    /**
      * Copy constructor; copies other's vector of items
      */
     GeometrySet(const GeometrySet<T> & other) {
@@ -47,7 +54,7 @@ public:
     /**
      * Returns a set that contains all intersecting elements of the current and given sets
      */
-    GeometrySet<T> intersect(GeometrySet<T> setToIntersect) const {
+    GeometrySet<T> intersectWith(GeometrySet<T> setToIntersect) const {
         GeometrySet<T> newSet;
         for (size_t i = 0; i < items.size(); i++) {
             if (setToIntersect.contains(items[i])) {
