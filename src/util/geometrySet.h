@@ -10,6 +10,21 @@
 template <class T>
 class GeometrySet {
 
+private:
+    std::vector<T> items;
+
+
+    class iterator : public std::vector<T>::iterator {
+    public:
+
+        iterator(typename std::vector<T>::iterator c) : std::vector<T>::iterator(c) {
+        }
+
+        T& operator*() {
+            return std::vector<T>::iterator::operator *();
+        }
+    };
+
 public:
 
     /**
@@ -63,12 +78,26 @@ public:
         }
         return newSet;
     }
+
+    /**
+     * Returns a set that contains all elements of the current and given sets without any shared elements
+     */
+    GeometrySet<T> outersect(GeometrySet<T> setToOutersect) const {
+        GeometrySet<T> newSet;
+        for (size_t i = 0; i < items.size(); i++) {
+            if (!setToOutersect.contains(items[i])) {
+                newSet.insert(items[i]);
+            }
+        }
+        return newSet;
+    }
     
     /**
      * Removes the given item from the set if it exists in the set
      */
     void remove(T item) {
-        std::vector<T>::iterator it = std::find(items.begin(), items.end(), item);
+        typedef typename std::vector<T>::iterator iter;
+        iter it = std::find(items.begin(), items.end(), item);
         if (it != items.end()) {
             items.erase(it);
         }
@@ -104,8 +133,13 @@ public:
         return items;
     }
 
-private:
-    std::vector<T> items;
+    iterator begin() {
+        return iterator(items.begin());
+    }
+
+    iterator end() {
+        return iterator(items.end());
+    }
 
 };
 

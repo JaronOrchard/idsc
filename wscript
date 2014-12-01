@@ -4,16 +4,6 @@ import hashlib
 import zipfile
 from waflib.Task import Task
 from waflib.Build import BuildContext
-from waflib.TaskGen import feature, before_method, after_method
-
-@feature('cxx')
-@after_method('process_source')
-@before_method('apply_incpaths')
-def add_includes_paths(self):
-    incs = set(self.to_list(getattr(self, 'includes', '')))
-    for x in self.compiled_tasks:
-        incs.add(x.inputs[0].parent.path_from(self.path))
-    self.includes = list(incs)
 
 class DownloadSource(Task):
     def run(self):
@@ -198,7 +188,7 @@ def build(ctx):
     libs = ['jpeg', 'sndfile']
     stlibs = []
     stlibpath = []
-    includes = [tetgen_include_node, glew_include_node, sfml_node.make_node('include'), 'deps/glm_src/glm', tgui_node.make_node('include')]
+    includes = [tetgen_include_node, glew_include_node, sfml_node.make_node('include'), 'deps/glm_src/glm', tgui_node.make_node('include'), 'src']
 
     if ctx.env['DEST_OS'] == 'linux':
         uselibs.extend(['X11', 'XRANDR', 'OPENAL', 'SNDFILE'])
@@ -217,7 +207,9 @@ def build(ctx):
 
         'src/model/IndexedFaceSet.cpp',
 
-        'src/tetmesh/tetmesh.cpp'
+        'src/tetmesh/tetmesh.cpp',
+
+        'src/util/geometry.cpp'
     ]
     ctx.program(
         source       = ' '.join(src_files),

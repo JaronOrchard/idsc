@@ -6,7 +6,7 @@ Jared:
 + Create vertex->set of tets
 
 Philip:
-- Initialize vertex->set of edges and edge->set of tets GeometrySets
+- Initialize vertex->set of tets GeometrySets
 - Handle vertex/tet_statuses array changes -> Change to enums INSIDE/OUTSIDE please
 - Handle edge collapsing/split
 - Fix visualizer (Visualizer needs to look at vertex/tet gravestones)

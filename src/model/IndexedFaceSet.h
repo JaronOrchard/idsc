@@ -3,7 +3,7 @@
 #ifndef _INDEXED_FACE_SET_H
 #define _INDEXED_FACE_SET_H
 
-#include "Renderable.h"
+#include "render/Renderable.h"
 #include "tetgen.h"
 
 class IndexedFaceSet {

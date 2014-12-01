@@ -1,20 +1,20 @@
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <iostream>
+
 #include <GL/glew.h>
 #include <SFML/Graphics.hpp>
 #include <TGUI/TGUI.hpp>
-#include <stdlib.h>
-#include <stdio.h>
+#include <tetgen.h>
 
-#include <iostream>
-
-#include "IndexedFaceSet.h"
-#include "tetgen.h"
-#include "Shader.h"
-#include "Renderable.h"
-#include "TetrahedralViewer.h"
-#include "render_utils.h"
+#include "model/IndexedFaceSet.h"
+#include "render/Shader.h"
+#include "render/Renderable.h"
+#include "render/TetrahedralViewer.h"
+#include "render/render_utils.h"
 #include "tetmesh/tetmesh.h"
-#include "geometrySet.h"
+#include "util/geometrySet.h"
 
 #define WINDOW_WIDTH 1440
 #define WINDOW_HEIGHT 810
@@ -56,18 +56,14 @@ int main() {
 	// TetMesh * tet_mesh = TetMesh::create_debug_tetmesh();
     delete mesh;
 
-    printf("Saving mesh to output/ ...\n");
-    tet_mesh->save("output/initial_sphere");
-
     printf("Evolving tet mesh...\n");
-    for (int i = 0; i < tet_mesh->num_vertices; i++) {
+    for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
         if (tet_mesh->get_vertex_status(i) == INTERFACE) {
             // scale and translate x
             tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.2;
         }
     }
     tet_mesh->evolve();
-    tet_mesh->save("output/evolved_sphere");
 
     printf("Displaying tet mesh...\n");
 
