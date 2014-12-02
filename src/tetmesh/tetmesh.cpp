@@ -5,7 +5,7 @@
 #include <iostream>
 
 // threshold for determining geometric equality
-#define EPSILON 0.0001
+#define EPSILON 0.00001
 
 #define vec_copy(dest, a) (dest)[0] = (a)[0]; (dest)[1] = (a)[1]; (dest)[2] = (a)[2]
 #define vec_add(dest, a, b) (dest)[0] = (a)[0] + (b)[0]; (dest)[1] = (a)[1] + (b)[1]; (dest)[2] = (a)[2] + (b)[2]
@@ -226,6 +226,9 @@ bool TetMesh::advect() {
     unsigned int num_vertices_at_target = 0;
     unsigned int num_vertices = vertices.size() / 3;
     for (unsigned int i = 0; i < num_vertices; i++) {
+        if (vertex_gravestones[i] == DEAD) {
+            break;
+        }
         vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
         // TODO: for performance, can keep flag of whether at target and calculate this in else
         REAL target_distance = vec_length(velocity);
@@ -296,7 +299,12 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 }
 
 void TetMesh::retesselate() {
-
+    unsigned int num_tets = tets.size() / 4;
+    for (unsigned int i = 0; i < num_tets; i++) {
+        if (tet_gravestones[i] == DEAD) {
+            break;
+        }
+    }
 }
 
 void TetMesh::bind_attributes(Renderable & renderable) {
@@ -374,16 +382,12 @@ void TetMesh::split_edge(Edge edge) {
     unsigned int v2 = edge.getV2();
     GeometrySet<unsigned int> split = vertex_tet_map[v1].intersectWith(vertex_tet_map[v2]);
 
-    unsigned int c = vertices.size() / 3;
-    vertices.resize((c + 1) * 3);
-    REAL * c_data = &vertices[c * 3];
-    vec_add(c_data, &vertices[v1], &vertices[v2]);
-    vec_divide(c_data, c_data, 2);
+    unsigned int c = insert_vertex(edge);
 
     for (auto it = split.begin(); it != split.end(); it++) {
         Edge opposite = get_opposite_edge(*it, edge);
-        insert_tet(c, edge.getV1(), opposite.getV1(), opposite.getV2());
-        insert_tet(c, edge.getV2(), opposite.getV1(), opposite.getV2());
+        insert_tet(c, v1, opposite.getV1(), opposite.getV2(), tet_statuses[*it]);
+        insert_tet(c, v2, opposite.getV1(), opposite.getV2(), tet_statuses[*it]);
         delete_tet(*it);
     }
 }
@@ -394,12 +398,7 @@ void TetMesh::collapse_edge(Edge edge) {
     GeometrySet<unsigned int> deleted = vertex_tet_map[v1].intersectWith(vertex_tet_map[v2]);
     GeometrySet<unsigned int> affected = vertex_tet_map[v1].outersectWith(vertex_tet_map[v2]);
 
-    unsigned int c = vertices.size() / 3;
-    vertices.resize((c + 1) * 3);
-    REAL * c_data = &vertices[c * 3];
-    vec_add(c_data, &vertices[v1], &vertices[v2]);
-    vec_divide(c_data, c_data, 2);
-
+    unsigned int c = insert_vertex(edge);
 
     for (auto it = affected.begin(); it != affected.end(); it++) {
         for (unsigned int i = 0; i < 4; i++) {
@@ -416,6 +415,25 @@ void TetMesh::collapse_edge(Edge edge) {
     vertex_gravestones[v2] = DEAD;
 }
 
+unsigned int TetMesh::insert_vertex(Edge edge) {
+    unsigned int v1 = edge.getV1();
+    unsigned int v2 = edge.getV2();
+
+    unsigned int c = vertices.size() / 3;
+    vertices.resize((c + 1) * 3);
+    REAL * c_data = &vertices[c * 3];
+    vec_add(c_data, &vertices[v1], &vertices[v2]);
+    vec_divide(c_data, c_data, 2);
+
+    vertex_targets.resize((c + 1) * 3);
+    c_data = &vertex_targets[c * 3];
+    vec_add(c_data, &vertex_targets[v1], &vertex_targets[v2]);
+    vec_divide(c_data, c_data, 2);
+
+    vertex_gravestones.push_back(ALIVE);
+    return c;
+}
+
 void TetMesh::delete_tet(unsigned int t) {
     tet_gravestones[t] = DEAD;
     for (unsigned int i = 0; i < 4; i++) {
@@ -423,7 +441,7 @@ void TetMesh::delete_tet(unsigned int t) {
     }
 }
 
-void TetMesh::insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsigned int v4) {
+unsigned int TetMesh::insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsigned int v4, status_t status) {
     unsigned int t = tets.size() / 4;
     tets.push_back(v1);
     tets.push_back(v2);
@@ -433,6 +451,9 @@ void TetMesh::insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsi
     vertex_tet_map[v2].insert(t);
     vertex_tet_map[v3].insert(t);
     vertex_tet_map[v4].insert(t);
+    tet_gravestones.push_back(ALIVE);
+    tet_statuses.push_back(status);
+    return t;
 }
 
 Face TetMesh::get_opposite_face(unsigned int tet_id, unsigned int vert_id) {
