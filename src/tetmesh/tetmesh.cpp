@@ -514,3 +514,17 @@ Edge TetMesh::longest_edge_in_set(GeometrySet<Edge> set_of_edges) {
     Edge longestEdge = edges[longestEdgeIndex];
     return longestEdge;
 }
+
+unsigned int TetMesh::get_opposite_vertex( Face face ){
+    unsigned int v_f[3] = {};
+    unsigned int v_opposite_id = 6;
+    v_f[0] = face.getV1() % 4;
+    v_f[1] = face.getV2() % 4;
+    v_f[2] = face.getV3() % 4;
+    for (int i = 0; i < v_f.size(); ++i)
+    {
+        v_remain -= v_f[i];
+    }
+
+    return v_opposite_id * 4;
+}
