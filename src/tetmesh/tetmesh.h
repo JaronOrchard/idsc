@@ -61,6 +61,8 @@ private:
     void split_edge(Edge edge);
     void collapse_edge(Edge edge);
 
+    REAL distance_between_point_and_edge(Edge edge, int vertex_index);
+
     void delete_tet(unsigned int t);
     unsigned int insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsigned int v4, status_t tet_status);
     unsigned int insert_vertex(Edge edge);

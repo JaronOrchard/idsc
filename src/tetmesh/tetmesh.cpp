@@ -279,9 +279,9 @@ void TetMesh::calculate_plane(REAL * plane, Face f) {
         0, 0, 0
     };
 
-    REAL * v1 = &vertices[f.getV1()];
-    REAL * v2 = &vertices[f.getV2()];
-    REAL * v3 = &vertices[f.getV3()];
+    REAL * v1 = &vertices[f.getV1() * 3];
+    REAL * v2 = &vertices[f.getV2() * 3];
+    REAL * v3 = &vertices[f.getV3() * 3];
     vec_subtract(temp1, v1, v3);
     vec_subtract(temp2, v2, v3);
     vec_cross(plane, temp1, temp2);
@@ -470,4 +470,24 @@ Face TetMesh::get_opposite_face(unsigned int tet_id, unsigned int vert_id) {
     } else {
         return Face(v1, v2, v3);
     }
+}
+
+// Derived from: http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
+REAL TetMesh::distance_between_point_and_edge(Edge edge, int vertex_index) {
+    static REAL cross[] = {
+        0, 0, 0
+    };
+    static REAL temp1[] = {
+        vertices[edge.getV2() * 3] - vertices[edge.getV1() * 3],
+        vertices[edge.getV2() * 3 + 1] - vertices[edge.getV1() * 3 + 1],
+        vertices[edge.getV2() * 3 + 2] - vertices[edge.getV1() * 3 + 2]
+    };
+    static REAL temp2[] = {
+        vertices[edge.getV1() * 3] - vertices[vertex_index * 3],
+        vertices[edge.getV1() * 3 + 1] - vertices[vertex_index * 3 + 1],
+        vertices[edge.getV1() * 3 + 2] - vertices[vertex_index * 3 + 2],
+    };
+
+    vec_cross(cross, temp1, temp2);
+    return (vec_length(cross) / vec_length(temp1));
 }
