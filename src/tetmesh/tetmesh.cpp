@@ -362,7 +362,7 @@ status_t TetMesh::get_vertex_status(unsigned int vertex_index) {
 
 Edge TetMesh::get_opposite_edge(unsigned int tet_id, Edge e) {
     unsigned int v1 = 0, v2 = 0;
-    bool found_v1;
+    bool found_v1 = false;
     for (int i = 0; i < 4; i++) {
         if (!e.contains(tets[tet_id * 4 + i])) {
             if (found_v1) {
@@ -490,4 +490,27 @@ REAL TetMesh::distance_between_point_and_edge(Edge edge, int vertex_index) {
 
     vec_cross(cross, temp1, temp2);
     return (vec_length(cross) / vec_length(temp1));
+}
+
+Edge TetMesh::longest_edge_in_set(GeometrySet<Edge> set_of_edges) {
+    assert(set_of_edges.size() > 0);
+    std::vector<Edge> edges = set_of_edges.getItems();
+    int longestEdgeIndex = 0;
+    REAL dx = vertices[edges[0].getV1() * 3] - vertices[edges[0].getV2() * 3];
+    REAL dy = vertices[edges[0].getV1() * 3 + 1] - vertices[edges[0].getV2() * 3 + 1];
+    REAL dz = vertices[edges[0].getV1() * 3 + 2] - vertices[edges[0].getV2() * 3 + 2];
+    REAL longestDistSq = dx*dx + dy*dy + dz*dz;
+        
+    for (size_t i = 1; i < edges.size(); i++) {
+        dx = vertices[edges[i].getV1() * 3] - vertices[edges[i].getV2() * 3];
+        dy = vertices[edges[i].getV1() * 3 + 1] - vertices[edges[i].getV2() * 3 + 1];
+        dz = vertices[edges[i].getV1() * 3 + 2] - vertices[edges[i].getV2() * 3 + 2];
+        REAL distSq = dx*dx + dy*dy + dz*dz;
+        if (distSq > longestDistSq) {
+            longestDistSq = distSq;
+            longestEdgeIndex = i;
+        }
+    }
+    Edge longestEdge = edges[longestEdgeIndex];
+    return longestEdge;
 }
