@@ -656,6 +656,14 @@ Face TetMesh::largest_face_in_set(GeometrySet<Face> set_of_faces) {
     return largestFace;    
 }
 
+GeometrySet<Edge> TetMesh::get_edges_from_face(Face face) {
+    GeometrySet<Edge> edges;
+    edges.insert(Edge(face.getV1(), face.getV2()));
+    edges.insert(Edge(face.getV1(), face.getV3()));
+    edges.insert(Edge(face.getV2(), face.getV3()));
+    return edges;
+}
+
 GeometrySet<Edge> TetMesh::get_edges_from_tet(int tet_id) {
     GeometrySet<Edge> edges;
     edges.insert(Edge(tets[tet_id * 4], tets[tet_id * 4 + 1]));
