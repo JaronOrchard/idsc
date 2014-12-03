@@ -227,7 +227,8 @@ bool TetMesh::advect() {
     unsigned int num_vertices = vertices.size() / 3;
     for (unsigned int i = 0; i < num_vertices; i++) {
         if (vertex_gravestones[i] == DEAD) {
-            break;
+            num_vertices_at_target++;
+            continue;
         }
         vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
         // TODO: for performance, can keep flag of whether at target and calculate this in else
@@ -250,7 +251,7 @@ bool TetMesh::advect() {
             }
         }
     }
-    return num_vertices_at_target == num_vertices;
+    return num_vertices_at_target >= num_vertices;
 }
 
 REAL TetMesh::get_distance_movable(unsigned int vertex_index, REAL * velocity) {
@@ -317,7 +318,7 @@ void TetMesh::retesselate() {
     unsigned int num_tets = tets.size() / 4;
     for (unsigned int i = 0; i < num_tets; i++) {
         if (tet_gravestones[i] == DEAD) {
-            break;
+            continue;
         }
 
         GeometrySet<Face> faces = get_faces_from_tet(i);
@@ -514,6 +515,7 @@ unsigned int TetMesh::insert_vertex(Edge edge) {
     vec_divide(c_data, c_data, 2);
 
     vertex_gravestones.push_back(ALIVE);
+    vertex_tet_map.push_back(GeometrySet<unsigned int>());
     return c;
 }
 
