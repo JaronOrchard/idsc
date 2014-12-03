@@ -472,6 +472,16 @@ Face TetMesh::get_opposite_face(unsigned int tet_id, unsigned int vert_id) {
     }
 }
 
+REAL TetMesh::get_edge_length(Edge edge) {
+    static REAL base[] = {
+        0, 0, 0
+    };
+    REAL * v1 = &vertices[edge.getV1() * 3];
+    REAL * v2 = &vertices[edge.getV2() * 3];
+    vec_subtract(base, v1, v2);
+    return vec_length(base);
+}
+
 // Derived from: http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
 REAL TetMesh::distance_between_point_and_edge(Edge edge, int vertex_index) {
     static REAL cross[] = {
@@ -492,26 +502,35 @@ REAL TetMesh::distance_between_point_and_edge(Edge edge, int vertex_index) {
     return (vec_length(cross) / vec_length(temp1));
 }
 
+Edge TetMesh::shortest_edge_in_set(GeometrySet<Edge> set_of_edges) {
+    return edge_in_set_helper(set_of_edges, true);
+}
+
 Edge TetMesh::longest_edge_in_set(GeometrySet<Edge> set_of_edges) {
+    return edge_in_set_helper(set_of_edges, false);
+}
+
+// If shortest == true, returns the shortest edge, else returns the longest edge
+Edge TetMesh::edge_in_set_helper(GeometrySet<Edge> set_of_edges, bool shortest) {
     assert(set_of_edges.size() > 0);
     std::vector<Edge> edges = set_of_edges.getItems();
-    int longestEdgeIndex = 0;
+    int bestEdgeIndex = 0;
     REAL dx = vertices[edges[0].getV1() * 3] - vertices[edges[0].getV2() * 3];
     REAL dy = vertices[edges[0].getV1() * 3 + 1] - vertices[edges[0].getV2() * 3 + 1];
     REAL dz = vertices[edges[0].getV1() * 3 + 2] - vertices[edges[0].getV2() * 3 + 2];
-    REAL longestDistSq = dx*dx + dy*dy + dz*dz;
+    REAL bestDistSq = dx*dx + dy*dy + dz*dz;
         
     for (size_t i = 1; i < edges.size(); i++) {
         dx = vertices[edges[i].getV1() * 3] - vertices[edges[i].getV2() * 3];
         dy = vertices[edges[i].getV1() * 3 + 1] - vertices[edges[i].getV2() * 3 + 1];
         dz = vertices[edges[i].getV1() * 3 + 2] - vertices[edges[i].getV2() * 3 + 2];
         REAL distSq = dx*dx + dy*dy + dz*dz;
-        if (distSq > longestDistSq) {
-            longestDistSq = distSq;
-            longestEdgeIndex = i;
+        if ((!shortest && distSq > bestDistSq) || (shortest && distSq < bestDistSq)) {
+            bestDistSq = distSq;
+            bestEdgeIndex = i;
         }
     }
-    Edge longestEdge = edges[longestEdgeIndex];
+    Edge longestEdge = edges[bestEdgeIndex];
     return longestEdge;
 }
 
