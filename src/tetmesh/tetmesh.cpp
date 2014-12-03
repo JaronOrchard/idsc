@@ -515,16 +515,48 @@ Edge TetMesh::longest_edge_in_set(GeometrySet<Edge> set_of_edges) {
     return longestEdge;
 }
 
-unsigned int TetMesh::get_opposite_vertex( Face face ){
-    unsigned int v_f[3] = {};
-    unsigned int v_opposite_id = 6;
-    v_f[0] = face.getV1() % 4;
-    v_f[1] = face.getV2() % 4;
-    v_f[2] = face.getV3() % 4;
-    for (int i = 0; i < v_f.size(); ++i)
-    {
-        v_remain -= v_f[i];
-    }
+//unsigned int TetMesh::get_opposite_vertex( Face face ){
+//    unsigned int v_f[3] = {};
+//    unsigned int v_opposite_id = 6;
+//    v_f[0] = face.getV1() % 4;
+//    v_f[1] = face.getV2() % 4;
+//    v_f[2] = face.getV3() % 4;
+//    for (int i = 0; i < v_f.size(); ++i)
+//    {
+//        v_remain -= v_f[i];
+//    }
+//
+//    return v_opposite_id * 4;
+//}
 
-    return v_opposite_id * 4;
+Face TetMesh::largest_face_in_set(GeometrySet<Face> set_of_faces) {
+    assert(set_of_faces.size() > 0);
+    std::vector<Face> faces = set_of_faces.getItems();
+    int largestFaceIndex = 0;
+    static REAL base[] = {
+        0, 0, 0
+    };
+    REAL * v1 = &vertices[faces[0].getV1() * 3];
+    REAL * v2 = &vertices[faces[0].getV2() * 3];
+    REAL * v3 = &vertices[faces[0].getV3() * 3];
+    vec_subtract(base, v1, v2);
+    REAL b = vec_length(base);
+    REAL h = distance_between_point_and_edge(Edge(faces[0].getV1(), faces[0].getV2()), faces[0].getV3());
+    REAL largestFaceAreaDoubled = b * h; // Doubled because *0.5 is irrelevant
+    
+    for (size_t i = 1; i < faces.size(); i++) {
+        v1 = &vertices[faces[i].getV1() * 3];
+        v2 = &vertices[faces[i].getV2() * 3];
+        v3 = &vertices[faces[i].getV3() * 3];
+        vec_subtract(base, v1, v2);
+        b = vec_length(base);
+        h = distance_between_point_and_edge(Edge(faces[i].getV1(), faces[i].getV2()), faces[i].getV3());
+        REAL faceAreaDoubled = b * h;
+        if (faceAreaDoubled > largestFaceAreaDoubled) {
+            largestFaceAreaDoubled = faceAreaDoubled;
+            largestFaceIndex = i;
+        }
+    }
+    Face largestFace = faces[largestFaceIndex];
+    return largestFace;    
 }
