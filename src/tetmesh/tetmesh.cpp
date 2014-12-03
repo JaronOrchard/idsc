@@ -174,40 +174,146 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
 }
 
 TetMesh * TetMesh::create_debug_tetmesh() {
-    int num_v = 5;
-    int num_t = 2;
     std::vector<REAL> vertices;
     std::vector<REAL> targets;
     std::vector<unsigned int> tetrahedra;
     std::vector<status_t> statuses;
-    vertices.resize(num_v * 3);
-    targets.resize(num_v * 3);
-    tetrahedra.resize(num_t * 4);
-    statuses.resize(num_t);
-    
-    vertices[0] = 0;  vertices[1] = 0;   vertices[2] = 0;  // (0, 0, 0)
-    vertices[3] = 6;  vertices[4] = 6;   vertices[5] = 5;  // (6, 6, 5)
-    vertices[6] = -6; vertices[7] = 6;   vertices[8] = 5;  // (-6, 6, 5)
-    vertices[9] = 0;  vertices[10] = -6; vertices[11] = 5; // (0, -6, 5)
-    vertices[12] = 0; vertices[13] = 0;  vertices[14] = 10; // (0, 0, 10)
 
-    for (int i = 0; i < num_v*3; i++) { targets[i] = vertices[i]; }
-    targets[14] = 2.5;
+    vertices.push_back(-3); vertices.push_back(0); vertices.push_back(0);
+    vertices.push_back(0); vertices.push_back(2); vertices.push_back(0);
+    vertices.push_back(0); vertices.push_back(-1); vertices.push_back(-1);
+    vertices.push_back(0); vertices.push_back(-1); vertices.push_back(1);
+    vertices.push_back(3); vertices.push_back(0); vertices.push_back(0);
 
-    statuses[0] = INSIDE;
-    statuses[1] = OUTSIDE;
+    for (unsigned int i = 0; i < vertices.size(); i++) { targets.push_back(vertices[i]); }
+    targets[0] = 1.5;
 
-    tetrahedra[0] = 0; tetrahedra[1] = 1; tetrahedra[2] = 2; tetrahedra[3] = 3;
-    tetrahedra[4] = 4; tetrahedra[5] = 1; tetrahedra[6] = 2; tetrahedra[7] = 3;
+    tetrahedra.push_back(0); tetrahedra.push_back(1); tetrahedra.push_back(2); tetrahedra.push_back(3);
+    statuses.push_back(INSIDE);
 
-    std::vector<GeometrySet<unsigned int>> vertex_to_tet(num_v);
-    for (int i = 0; i < num_t; i++) {
-        for (int j = 0; j < 4; j++) {
-            vertex_to_tet[tetrahedra[i * 4 + j]].insert(i);
-        }
+    tetrahedra.push_back(4); tetrahedra.push_back(1); tetrahedra.push_back(2); tetrahedra.push_back(3);
+    statuses.push_back(OUTSIDE);
+
+    std::vector<GeometrySet<unsigned int>> vertex_to_tet(vertices.size() / 3);
+    for (unsigned int i = 0; i < tetrahedra.size(); i++) {
+        vertex_to_tet[tetrahedra[i]].insert(i / 4);
     }
     
     return new TetMesh(vertices, targets, tetrahedra, statuses, vertex_to_tet);
+}
+
+
+TetMesh * TetMesh::create_big_debug_tetmesh() {
+    std::vector<REAL> vertices;
+    std::vector<REAL> targets;
+    std::vector<unsigned int> tetrahedra;
+    std::vector<status_t> statuses;
+
+    vertices.push_back(-3); vertices.push_back(0); vertices.push_back(0);
+    vertices.push_back(0); vertices.push_back(2); vertices.push_back(0);
+    vertices.push_back(0); vertices.push_back(-1); vertices.push_back(-1);
+    vertices.push_back(0); vertices.push_back(-1); vertices.push_back(1);
+    vertices.push_back(3); vertices.push_back(0); vertices.push_back(0);
+    vertices.push_back(2); vertices.push_back(-2); vertices.push_back(0);
+    vertices.push_back(-2); vertices.push_back(-2); vertices.push_back(0);
+    vertices.push_back(-2); vertices.push_back(1); vertices.push_back(-2);
+    vertices.push_back(-2); vertices.push_back(1); vertices.push_back(2);
+    vertices.push_back(2); vertices.push_back(1); vertices.push_back(-2);
+    vertices.push_back(2); vertices.push_back(1); vertices.push_back(2);
+    vertices.push_back(-4); vertices.push_back(2); vertices.push_back(0);
+    vertices.push_back(-4); vertices.push_back(-1); vertices.push_back(-1);
+    vertices.push_back(-4); vertices.push_back(-1); vertices.push_back(1);
+
+    for (unsigned int i = 0; i < vertices.size(); i++) { targets.push_back(vertices[i]); }
+    targets[0] = 1.5;
+
+    tetrahedra.push_back(0); tetrahedra.push_back(1); tetrahedra.push_back(2); tetrahedra.push_back(3);
+    statuses.push_back(INSIDE);
+    tetrahedra.push_back(4); tetrahedra.push_back(1); tetrahedra.push_back(2); tetrahedra.push_back(3);
+    statuses.push_back(INSIDE);
+
+    tetrahedra.push_back(4); tetrahedra.push_back(5); tetrahedra.push_back(2); tetrahedra.push_back(3);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(6); tetrahedra.push_back(2); tetrahedra.push_back(3);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(5); tetrahedra.push_back(6); tetrahedra.push_back(2); tetrahedra.push_back(3);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(7); tetrahedra.push_back(1); tetrahedra.push_back(2); tetrahedra.push_back(0);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(9); tetrahedra.push_back(1); tetrahedra.push_back(2); tetrahedra.push_back(4);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(9); tetrahedra.push_back(1); tetrahedra.push_back(3); tetrahedra.push_back(7);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(8); tetrahedra.push_back(1); tetrahedra.push_back(3); tetrahedra.push_back(0);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(10); tetrahedra.push_back(1); tetrahedra.push_back(3); tetrahedra.push_back(4);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(10); tetrahedra.push_back(1); tetrahedra.push_back(3); tetrahedra.push_back(8);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(1); tetrahedra.push_back(7); tetrahedra.push_back(11);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(1); tetrahedra.push_back(8); tetrahedra.push_back(11);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(2); tetrahedra.push_back(7); tetrahedra.push_back(12);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(3); tetrahedra.push_back(8); tetrahedra.push_back(13);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(2); tetrahedra.push_back(6); tetrahedra.push_back(12);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(3); tetrahedra.push_back(6); tetrahedra.push_back(13);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(11); tetrahedra.push_back(12); tetrahedra.push_back(7);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(11); tetrahedra.push_back(13); tetrahedra.push_back(8);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(12); tetrahedra.push_back(13); tetrahedra.push_back(6);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(11); tetrahedra.push_back(12); tetrahedra.push_back(13);
+    statuses.push_back(OUTSIDE);
+
+    std::vector<GeometrySet<unsigned int>> vertex_to_tet(vertices.size() / 3);
+    for (unsigned int i = 0; i < tetrahedra.size(); i++) {
+        vertex_to_tet[tetrahedra[i]].insert(i / 4);
+    }
+    
+    return new TetMesh(vertices, targets, tetrahedra, statuses, vertex_to_tet);
+}
+
+
+TetMesh * TetMesh::create_collapsed_tetmesh() {
+    std::vector<REAL> vertices;
+    std::vector<REAL> targets;
+    std::vector<unsigned int> tetrahedra;
+    std::vector<status_t> statuses;
+
+    vertices.push_back(5); vertices.push_back(5); vertices.push_back(5);
+    vertices.push_back(-5); vertices.push_back(-5); vertices.push_back(-5);
+    vertices.push_back(5); vertices.push_back(5); vertices.push_back(-5);
+    // vertices.push_back(5); vertices.push_back(-5); vertices.push_back(-5);
+    vertices.push_back(5); vertices.push_back(-5); vertices.push_back(5);
+    // vertices.push_back(-5); vertices.push_back(-5); vertices.push_back(5);
+    vertices.push_back(-5); vertices.push_back(5); vertices.push_back(5);
+    // vertices.push_back(-5); vertices.push_back(5); vertices.push_back(-5);
+
+    for (unsigned int i = 0; i < vertices.size(); i++) { targets.push_back(vertices[i]); }
+
+    tetrahedra.push_back(0); tetrahedra.push_back(1); tetrahedra.push_back(2); tetrahedra.push_back(3);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(1); tetrahedra.push_back(3); tetrahedra.push_back(4);
+    statuses.push_back(OUTSIDE);
+    tetrahedra.push_back(0); tetrahedra.push_back(1); tetrahedra.push_back(4); tetrahedra.push_back(2);
+    statuses.push_back(OUTSIDE);
+
+    std::vector<GeometrySet<unsigned int>> vertex_to_tet(vertices.size() / 3);
+    for (unsigned int i = 0; i < tetrahedra.size(); i++) {
+        vertex_to_tet[tetrahedra[i]].insert(i / 4);
+    }
+    
+    TetMesh * tet_mesh = new TetMesh(vertices, targets, tetrahedra, statuses, vertex_to_tet);
+    unsigned int a = tet_mesh->split_edge(Edge(0, 1));
+    unsigned int b = tet_mesh->split_edge(Edge(0, a));
+    tet_mesh->collapse_edge(Edge(a, b));
+    return tet_mesh;
 }
 
 void TetMesh::evolve() {
@@ -261,6 +367,7 @@ REAL TetMesh::get_distance_movable(unsigned int vertex_index, REAL * velocity) {
     REAL min_distance = -1;
     GeometrySet<unsigned int> t = vertex_tet_map[vertex_index];
     for (auto it = t.begin(); it != t.end(); it++) {
+        assert(tet_gravestones[*it] != DEAD);
         Face f = get_opposite_face(*it, vertex_index);
         calculate_plane(plane, f);
         REAL distance = intersect_plane(plane, &vertices[vertex_index * 3], velocity);
@@ -300,7 +407,6 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 }
 
 void TetMesh::retesselate() {
-    static int num_splits = 0;
     static REAL u[] = {
         0, 0, 0
     };
@@ -327,12 +433,7 @@ void TetMesh::retesselate() {
         calculate_plane(plane, test_face);
         REAL * opp_v = &vertices[get_opposite_vertex(i, test_face) * 3];
         bool is_coplanar = absolute(vec_dot(plane, opp_v) + plane[3]) < EPSILON;
-        printf("%f, %f, %f\n", vertices[test_face.getV1() * 3], vertices[test_face.getV1() * 3 + 1], vertices[test_face.getV1() * 3 + 2]);
-        printf("%f, %f, %f\n", vertices[test_face.getV2() * 3], vertices[test_face.getV2() * 3 + 1], vertices[test_face.getV2() * 3 + 2]);
-        printf("%f, %f, %f\n", vertices[test_face.getV3() * 3], vertices[test_face.getV3() * 3 + 1], vertices[test_face.getV3() * 3 + 2]);
-        printf("opp_v: %f, %f, %f\n\n", opp_v[0], opp_v[1], opp_v[2]);
         if (is_coplanar) {
-            num_splits++;
             GeometrySet<Edge> edges = get_edges_from_tet(i);
 
             // vertex on vertex
@@ -502,6 +603,7 @@ unsigned int TetMesh::collapse_edge(Edge edge) {
         for (unsigned int i = 0; i < 4; i++) {
             if (tets[*it * 4 + i] == v1 || tets[*it * 4 + i] == v2) {
                 tets[*it * 4 + i] = c;
+                vertex_tet_map[c].insert(*it);
                 break;
             }
         }

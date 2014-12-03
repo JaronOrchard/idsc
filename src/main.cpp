@@ -53,7 +53,9 @@ int main() {
 
     printf("Generating tet mesh...\n");
     TetMesh * tet_mesh = TetMesh::from_indexed_face_set(*mesh);
-	// TetMesh * tet_mesh = TetMesh::create_debug_tetmesh();
+    // TetMesh * tet_mesh = TetMesh::create_debug_tetmesh();
+    // TetMesh * tet_mesh = TetMesh::create_big_debug_tetmesh();
+    // TetMesh * tet_mesh = TetMesh::create_collapsed_tetmesh();
     delete mesh;
 
     printf("Evolving tet mesh...\n");

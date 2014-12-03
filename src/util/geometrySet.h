@@ -89,6 +89,11 @@ public:
                 newSet.insert(items[i]);
             }
         }
+        for (auto it = setToOutersect.begin(); it != setToOutersect.end(); it++) {
+            if (!contains(*it)) {
+                newSet.insert(*it);
+            }
+        }
         return newSet;
     }
     
@@ -115,14 +120,14 @@ public:
     /**
      * Returns the number of items in the set
      */
-    int size() {
+    unsigned int size() const {
         return items.size();
     }
 
     /**
      * Returns true if the given item is in the set, false otherwise
      */
-    bool contains(T item) {
+    bool contains(T item) const {
         return (std::find(items.begin(), items.end(), item) != items.end());
     }
 
