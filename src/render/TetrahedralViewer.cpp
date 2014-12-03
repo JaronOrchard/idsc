@@ -50,11 +50,13 @@ void TetrahedralViewer::init(int window_width, int window_height, float fov) {
     outside_toggle->load(THEME_CONFIG_FILE);
     outside_toggle->setText("Display outside faces");
     outside_toggle->setPosition(20, 180);
+    outside_toggle->check();
 
     inside_toggle = tgui::Checkbox::Ptr(*gui);
     inside_toggle->load(THEME_CONFIG_FILE);
     inside_toggle->setText("Display inside faces");
     inside_toggle->setPosition(20, 220);
+    inside_toggle->check();
 
     interface_toggle = tgui::Checkbox::Ptr(*gui);
     interface_toggle->load(THEME_CONFIG_FILE);
@@ -66,7 +68,7 @@ void TetrahedralViewer::init(int window_width, int window_height, float fov) {
     error_toggle->load(THEME_CONFIG_FILE);
     error_toggle->setText("Display invalid faces");
     error_toggle->setPosition(20, 300);
-    interface_toggle->check();
+    error_toggle->check();
 
     opacity_slider = tgui::Slider::Ptr(*gui);
     opacity_slider->load(THEME_CONFIG_FILE);

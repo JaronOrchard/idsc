@@ -17,7 +17,7 @@
 #define vec_scale(dest, a, s) (dest)[0] = (a)[0] * s; (dest)[1] = (a)[1] * s; (dest)[2] = (a)[2] * s
 #define vec_divide(dest, a, d) (dest)[0] = (a)[0] / d; (dest)[1] = (a)[1] / d; (dest)[2] = (a)[2] / d
 
-#define absolute(a) (a < 0 ? -(a) : (a))
+#define absolute(a) ((a) < 0 ? -(a) : (a))
 
 TetMesh::TetMesh(std::vector<REAL> vertices, std::vector<REAL> vertex_targets,
                  std::vector<unsigned int> tets, std::vector<status_t> tet_statuses,
