@@ -52,15 +52,15 @@ int main() {
     IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
 
     printf("Generating tet mesh...\n");
-    TetMesh * tet_mesh = TetMesh::from_indexed_face_set(*mesh);
-	// TetMesh * tet_mesh = TetMesh::create_debug_tetmesh();
+    //TetMesh * tet_mesh = TetMesh::from_indexed_face_set(*mesh);
+	TetMesh * tet_mesh = TetMesh::create_debug_tetmesh();
     delete mesh;
 
     printf("Evolving tet mesh...\n");
     for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
         if (tet_mesh->get_vertex_status(i) == INTERFACE) {
             // scale and translate x
-            tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.2;
+            //tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.2;
         }
     }
     tet_mesh->evolve();

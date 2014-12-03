@@ -17,7 +17,7 @@
 #define vec_scale(dest, a, s) (dest)[0] = (a)[0] * s; (dest)[1] = (a)[1] * s; (dest)[2] = (a)[2] * s
 #define vec_divide(dest, a, d) (dest)[0] = (a)[0] / d; (dest)[1] = (a)[1] / d; (dest)[2] = (a)[2] / d
 
-#define absolute(a) (a < 0 ? -a : a)
+#define absolute(a) (a < 0 ? -(a) : (a))
 
 TetMesh::TetMesh(std::vector<REAL> vertices, std::vector<REAL> vertex_targets,
                  std::vector<unsigned int> tets, std::vector<status_t> tet_statuses,
@@ -163,7 +163,7 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     delete inner_input;
     delete outer_input;
 
-    std::vector<GeometrySet<unsigned int>> vertex_to_tet(num_t);
+    std::vector<GeometrySet<unsigned int>> vertex_to_tet(num_v);
     for (int i = 0; i < num_t; i++) {
         for (int j = 0; j < 4; j++) {
             vertex_to_tet[tetrahedra[i * 4 + j]].insert(i);
@@ -200,7 +200,7 @@ TetMesh * TetMesh::create_debug_tetmesh() {
     tetrahedra[0] = 0; tetrahedra[1] = 1; tetrahedra[2] = 2; tetrahedra[3] = 3;
     tetrahedra[4] = 4; tetrahedra[5] = 1; tetrahedra[6] = 2; tetrahedra[7] = 3;
 
-    std::vector<GeometrySet<unsigned int>> vertex_to_tet(num_t);
+    std::vector<GeometrySet<unsigned int>> vertex_to_tet(num_v);
     for (int i = 0; i < num_t; i++) {
         for (int j = 0; j < 4; j++) {
             vertex_to_tet[tetrahedra[i * 4 + j]].insert(i);
@@ -324,8 +324,8 @@ void TetMesh::retesselate() {
         GeometrySet<Face> faces = get_faces_from_tet(i);
         Face test_face = *faces.begin();
         calculate_plane(plane, test_face);
-        REAL * opp_v = &vertices[get_opposite_vertex(i, test_face)];
-        bool is_coplanar = vec_dot(plane, opp_v) + plane[3] < EPSILON;
+        REAL * opp_v = &vertices[get_opposite_vertex(i, test_face) * 3];
+        bool is_coplanar = absolute(vec_dot(plane, opp_v) + plane[3]) < EPSILON;
         if (is_coplanar) {
             GeometrySet<Edge> edges = get_edges_from_tet(i);
 
@@ -411,9 +411,9 @@ void TetMesh::bind_attributes(Renderable & renderable) {
     for (unsigned int i = 0; i < num_tets; i++) {
         for (unsigned int j = 0; j < 4; j++) {
             Face f = get_opposite_face(i, tets[i * 4 + j]);
-            indices[i * 12 + j] = f.getV1();
-            indices[i * 12 + j + 1] = f.getV2();
-            indices[i * 12 + j + 2] = f.getV3();
+            indices[i * 12 + j * 3] = f.getV1();
+            indices[i * 12 + j * 3 + 1] = f.getV2();
+            indices[i * 12 + j * 3 + 2] = f.getV3();
         }
     }
 
@@ -506,12 +506,12 @@ unsigned int TetMesh::insert_vertex(Edge edge) {
     unsigned int c = vertices.size() / 3;
     vertices.resize((c + 1) * 3);
     REAL * c_data = &vertices[c * 3];
-    vec_add(c_data, &vertices[v1], &vertices[v2]);
+    vec_add(c_data, &vertices[v1 * 3], &vertices[v2 * 3]);
     vec_divide(c_data, c_data, 2);
 
     vertex_targets.resize((c + 1) * 3);
     c_data = &vertex_targets[c * 3];
-    vec_add(c_data, &vertex_targets[v1], &vertex_targets[v2]);
+    vec_add(c_data, &vertex_targets[v1 * 3], &vertex_targets[v2 * 3]);
     vec_divide(c_data, c_data, 2);
 
     vertex_gravestones.push_back(ALIVE);
