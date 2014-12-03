@@ -74,10 +74,7 @@ private:
     void delete_tet(unsigned int t);
     unsigned int insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsigned int v4, status_t tet_status);
     unsigned int insert_vertex(Edge edge);
-<<<<<<< Updated upstream
     //unsigned int get_opposite_vertex( Face face );
-=======
->>>>>>> Stashed changes
 };
 
 #endif

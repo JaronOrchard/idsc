@@ -618,6 +618,8 @@ unsigned int TetMesh::get_opposite_vertex(unsigned int tet_id, Face face) {
             return v;
         }
     }
+    assert(false);
+    return 0;
 }
 
 Face TetMesh::largest_face_in_set(GeometrySet<Face> set_of_faces) {
