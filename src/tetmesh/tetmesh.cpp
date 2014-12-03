@@ -488,16 +488,17 @@ REAL TetMesh::distance_between_point_and_edge(Edge edge, int vertex_index) {
         0, 0, 0
     };
     static REAL temp1[] = {
-        vertices[edge.getV2() * 3] - vertices[edge.getV1() * 3],
-        vertices[edge.getV2() * 3 + 1] - vertices[edge.getV1() * 3 + 1],
-        vertices[edge.getV2() * 3 + 2] - vertices[edge.getV1() * 3 + 2]
+        0, 0, 0
     };
     static REAL temp2[] = {
-        vertices[edge.getV1() * 3] - vertices[vertex_index * 3],
-        vertices[edge.getV1() * 3 + 1] - vertices[vertex_index * 3 + 1],
-        vertices[edge.getV1() * 3 + 2] - vertices[vertex_index * 3 + 2],
+        0, 0, 0
     };
 
+    REAL * v0 = &vertices[vertex_index * 3];
+    REAL * v1 = &vertices[edge.getV1() * 3];
+    REAL * v2 = &vertices[edge.getV2() * 3];
+    vec_subtract(temp1, v2, v1);
+    vec_subtract(temp2, v1, v0);
     vec_cross(cross, temp1, temp2);
     return (vec_length(cross) / vec_length(temp1));
 }
@@ -515,16 +516,9 @@ Edge TetMesh::edge_in_set_helper(GeometrySet<Edge> set_of_edges, bool shortest) 
     assert(set_of_edges.size() > 0);
     std::vector<Edge> edges = set_of_edges.getItems();
     int bestEdgeIndex = 0;
-    REAL dx = vertices[edges[0].getV1() * 3] - vertices[edges[0].getV2() * 3];
-    REAL dy = vertices[edges[0].getV1() * 3 + 1] - vertices[edges[0].getV2() * 3 + 1];
-    REAL dz = vertices[edges[0].getV1() * 3 + 2] - vertices[edges[0].getV2() * 3 + 2];
-    REAL bestDistSq = dx*dx + dy*dy + dz*dz;
-        
+    REAL bestDistSq = get_edge_length(edges[0]);
     for (size_t i = 1; i < edges.size(); i++) {
-        dx = vertices[edges[i].getV1() * 3] - vertices[edges[i].getV2() * 3];
-        dy = vertices[edges[i].getV1() * 3 + 1] - vertices[edges[i].getV2() * 3 + 1];
-        dz = vertices[edges[i].getV1() * 3 + 2] - vertices[edges[i].getV2() * 3 + 2];
-        REAL distSq = dx*dx + dy*dy + dz*dz;
+        REAL distSq = get_edge_length(edges[i]);
         if ((!shortest && distSq > bestDistSq) || (shortest && distSq < bestDistSq)) {
             bestDistSq = distSq;
             bestEdgeIndex = i;
