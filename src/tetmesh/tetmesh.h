@@ -64,6 +64,8 @@ private:
     REAL distance_between_point_and_edge(Edge edge, int vertex_index);
     Edge longest_edge_in_set(GeometrySet<Edge> set_of_edges);
     Face largest_face_in_set(GeometrySet<Face> set_of_faces);
+    GeometrySet<Edge> get_edges_from_tet(int tet_id);
+    GeometrySet<Face> get_faces_from_tet(int tet_id);
 
     void delete_tet(unsigned int t);
     unsigned int insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsigned int v4, status_t tet_status);

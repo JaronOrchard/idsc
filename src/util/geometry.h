@@ -10,7 +10,7 @@ public:
     unsigned int getV1() { return v1; }
     unsigned int getV2() { return v2; }
 
-    bool operator==(Edge & e) {
+    bool operator==(const Edge & e) const {
         return e.v1 == v1 && e.v2 == v2;
     }
 
@@ -32,7 +32,7 @@ public:
     unsigned int getV2() { return v2; }
     unsigned int getV3() { return v3; }
 
-    bool operator==(Face & f) {
+    bool operator==(const Face & f) const {
         return f.v1 == v1 && f.v2 == v2 && f.v3 == v3;
     }
 

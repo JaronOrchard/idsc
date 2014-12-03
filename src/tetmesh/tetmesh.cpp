@@ -560,3 +560,23 @@ Face TetMesh::largest_face_in_set(GeometrySet<Face> set_of_faces) {
     Face largestFace = faces[largestFaceIndex];
     return largestFace;    
 }
+
+GeometrySet<Edge> TetMesh::get_edges_from_tet(int tet_id) {
+    GeometrySet<Edge> edges;
+    edges.insert(Edge(tets[tet_id * 4], tets[tet_id * 4 + 1]));
+    edges.insert(Edge(tets[tet_id * 4], tets[tet_id * 4 + 2]));
+    edges.insert(Edge(tets[tet_id * 4], tets[tet_id * 4 + 3]));
+    edges.insert(Edge(tets[tet_id * 4 + 1], tets[tet_id * 4 + 2]));
+    edges.insert(Edge(tets[tet_id * 4 + 1], tets[tet_id * 4 + 3]));
+    edges.insert(Edge(tets[tet_id * 4 + 2], tets[tet_id * 4 + 3]));
+    return edges;
+}
+
+GeometrySet<Face> TetMesh::get_faces_from_tet(int tet_id) {
+    GeometrySet<Face> faces;
+    faces.insert(Face(tets[tet_id * 4], tets[tet_id * 4 + 1], tets[tet_id * 4 + 2]));
+    faces.insert(Face(tets[tet_id * 4], tets[tet_id * 4 + 1], tets[tet_id * 4 + 3]));
+    faces.insert(Face(tets[tet_id * 4], tets[tet_id * 4 + 2], tets[tet_id * 4 + 3]));
+    faces.insert(Face(tets[tet_id * 4 + 1], tets[tet_id * 4 + 2], tets[tet_id * 4 + 3]));
+    return faces;
+}
