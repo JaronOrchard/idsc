@@ -299,10 +299,89 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 }
 
 void TetMesh::retesselate() {
+    static REAL u[] = {
+        0, 0, 0
+    };
+    static REAL v[] = {
+        0, 0, 0
+    };
+    static REAL w[] = {
+        0, 0, 0
+    };
+    static REAL x[] = {
+        0, 0, 0
+    };
+    static REAL plane[] = {
+        0, 0, 0, 0
+    };
     unsigned int num_tets = tets.size() / 4;
     for (unsigned int i = 0; i < num_tets; i++) {
         if (tet_gravestones[i] == DEAD) {
             break;
+        }
+
+        GeometrySet<Face> faces = get_faces_from_tet(i);
+        Face test_face = *faces.begin();
+        calculate_plane(plane, test_face);
+        REAL * opp_v = &vertices[get_opposite_vertex(i, test_face)];
+        bool is_coplanar = vec_dot(plane, opp_v) + plane[3] < EPSILON;
+        if (is_coplanar) {
+            GeometrySet<Edge> edges = get_edges_from_tet(i);
+
+            // vertex on vertex
+            Edge shortest_edge = shortest_edge_in_set(edges);
+            if (get_edge_length(shortest_edge) < EPSILON) {
+                collapse_edge(shortest_edge);
+                continue;
+            }
+
+            // vertex on edge
+            unsigned int closest_v;
+            Edge closest_edge(0, 0);
+            REAL min_dist = -1;
+            for (unsigned int j = 0; j < 4; j++) {
+                unsigned int v = tets[i * 4];
+                for (auto it = edges.begin(); it != edges.end(); it++) {
+                    REAL d = distance_between_point_and_edge(*it, v);
+                    if (d < min_dist || min_dist == -1) {
+                        closest_v = v;
+                        closest_edge = *it;
+                        min_dist = d;
+                    }
+                }
+            }
+            if (min_dist < EPSILON) {
+                unsigned int c = split_edge(closest_edge);
+                collapse_edge(Edge(closest_v, c));
+                continue;
+            }
+
+            // concave and convex flattened tets
+            Face f = largest_face_in_set(faces);
+            unsigned int apex = get_opposite_vertex(i, f);
+            REAL * apex_data = &vertices[apex * 3];
+            REAL * v1 = &vertices[f.getV1() * 3];
+            REAL * v2 = &vertices[f.getV2() * 3];
+            REAL * v3 = &vertices[f.getV3() * 3];
+            vec_subtract(u, apex_data, v1);
+            vec_subtract(v, v2, apex_data);
+            vec_subtract(w, v3, v2);
+            vec_cross(x, u, v);
+            vec_cross(u, v, w);
+            // apex is inside f
+            if (vec_dot(x, u) < 0) {
+                Edge e = longest_edge_in_set(edges);
+                unsigned int c = split_edge(e);
+                collapse_edge(Edge(apex, c));
+            // apex is outside f
+            } else {
+                Edge e1 = longest_edge_in_set(edges);
+                edges.remove(e1);
+                Edge e2 = longest_edge_in_set(edges);
+                unsigned int c1 = split_edge(e1);
+                unsigned int c2 = split_edge(e2);
+                collapse_edge(Edge(c1, c2));
+            }
         }
     }
 }
@@ -377,7 +456,7 @@ Edge TetMesh::get_opposite_edge(unsigned int tet_id, Edge e) {
     return Edge(v1, v2);
 }
 
-void TetMesh::split_edge(Edge edge) {
+unsigned int TetMesh::split_edge(Edge edge) {
     unsigned int v1 = edge.getV1();
     unsigned int v2 = edge.getV2();
     GeometrySet<unsigned int> split = vertex_tet_map[v1].intersectWith(vertex_tet_map[v2]);
@@ -390,9 +469,11 @@ void TetMesh::split_edge(Edge edge) {
         insert_tet(c, v2, opposite.getV1(), opposite.getV2(), tet_statuses[*it]);
         delete_tet(*it);
     }
+
+    return c;
 }
 
-void TetMesh::collapse_edge(Edge edge) {
+unsigned int TetMesh::collapse_edge(Edge edge) {
     unsigned int v1 = edge.getV1();
     unsigned int v2 = edge.getV2();
     GeometrySet<unsigned int> deleted = vertex_tet_map[v1].intersectWith(vertex_tet_map[v2]);
@@ -413,6 +494,8 @@ void TetMesh::collapse_edge(Edge edge) {
     }
     vertex_gravestones[v1] = DEAD;
     vertex_gravestones[v2] = DEAD;
+
+    return c;
 }
 
 unsigned int TetMesh::insert_vertex(Edge edge) {
@@ -528,19 +611,14 @@ Edge TetMesh::edge_in_set_helper(GeometrySet<Edge> set_of_edges, bool shortest) 
     return longestEdge;
 }
 
-//unsigned int TetMesh::get_opposite_vertex( Face face ){
-//    unsigned int v_f[3] = {};
-//    unsigned int v_opposite_id = 6;
-//    v_f[0] = face.getV1() % 4;
-//    v_f[1] = face.getV2() % 4;
-//    v_f[2] = face.getV3() % 4;
-//    for (int i = 0; i < v_f.size(); ++i)
-//    {
-//        v_remain -= v_f[i];
-//    }
-//
-//    return v_opposite_id * 4;
-//}
+unsigned int TetMesh::get_opposite_vertex(unsigned int tet_id, Face face) {
+    for (int i = 0; i < 4; i++) {
+        unsigned int v = tets[tet_id * 4 + i];
+        if (face.getV1() != v && face.getV2() != v && face.getV3() != v) {
+            return v;
+        }
+    }
+}
 
 Face TetMesh::largest_face_in_set(GeometrySet<Face> set_of_faces) {
     assert(set_of_faces.size() > 0);

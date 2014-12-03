@@ -56,10 +56,11 @@ private:
     void calculate_plane(REAL * plane, Face f);
     REAL intersect_plane(REAL * plane, REAL * vertex, REAL * velocity);
 
+    unsigned int get_opposite_vertex(unsigned int tet_id, Face face);
     Edge get_opposite_edge(unsigned int tet_id, Edge e);
     Face get_opposite_face(unsigned int tet_id, unsigned int vert_id);
-    void split_edge(Edge edge);
-    void collapse_edge(Edge edge);
+    unsigned int split_edge(Edge edge);
+    unsigned int collapse_edge(Edge edge);
 
     REAL get_edge_length(Edge edge);
     REAL distance_between_point_and_edge(Edge edge, int vertex_index);
@@ -73,7 +74,10 @@ private:
     void delete_tet(unsigned int t);
     unsigned int insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsigned int v4, status_t tet_status);
     unsigned int insert_vertex(Edge edge);
+<<<<<<< Updated upstream
     //unsigned int get_opposite_vertex( Face face );
+=======
+>>>>>>> Stashed changes
 };
 
 #endif
