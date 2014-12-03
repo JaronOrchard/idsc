@@ -300,6 +300,7 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 }
 
 void TetMesh::retesselate() {
+    static int num_splits = 0;
     static REAL u[] = {
         0, 0, 0
     };
@@ -326,12 +327,18 @@ void TetMesh::retesselate() {
         calculate_plane(plane, test_face);
         REAL * opp_v = &vertices[get_opposite_vertex(i, test_face) * 3];
         bool is_coplanar = absolute(vec_dot(plane, opp_v) + plane[3]) < EPSILON;
+        printf("%f, %f, %f\n", vertices[test_face.getV1() * 3], vertices[test_face.getV1() * 3 + 1], vertices[test_face.getV1() * 3 + 2]);
+        printf("%f, %f, %f\n", vertices[test_face.getV2() * 3], vertices[test_face.getV2() * 3 + 1], vertices[test_face.getV2() * 3 + 2]);
+        printf("%f, %f, %f\n", vertices[test_face.getV3() * 3], vertices[test_face.getV3() * 3 + 1], vertices[test_face.getV3() * 3 + 2]);
+        printf("opp_v: %f, %f, %f\n\n", opp_v[0], opp_v[1], opp_v[2]);
         if (is_coplanar) {
+            num_splits++;
             GeometrySet<Edge> edges = get_edges_from_tet(i);
 
             // vertex on vertex
             Edge shortest_edge = shortest_edge_in_set(edges);
             if (get_edge_length(shortest_edge) < EPSILON) {
+                printf("vertex on vertex\n");
                 collapse_edge(shortest_edge);
                 continue;
             }
@@ -342,7 +349,9 @@ void TetMesh::retesselate() {
             REAL min_dist = -1;
             for (unsigned int j = 0; j < 4; j++) {
                 unsigned int v = tets[i * 4];
-                for (auto it = edges.begin(); it != edges.end(); it++) {
+                Face f = get_opposite_face(i, v);
+                GeometrySet<Edge> opp_edges = get_edges_from_face(f);
+                for (auto it = opp_edges.begin(); it != opp_edges.end(); it++) {
                     REAL d = distance_between_point_and_edge(*it, v);
                     if (d < min_dist || min_dist == -1) {
                         closest_v = v;
@@ -352,6 +361,7 @@ void TetMesh::retesselate() {
                 }
             }
             if (min_dist < EPSILON) {
+                printf("vertex on edge %f\n", min_dist);
                 unsigned int c = split_edge(closest_edge);
                 collapse_edge(Edge(closest_v, c));
                 continue;
@@ -371,11 +381,13 @@ void TetMesh::retesselate() {
             vec_cross(u, v, w);
             // apex is inside f
             if (vec_dot(x, u) < 0) {
+                printf("concave\n");
                 Edge e = longest_edge_in_set(edges);
                 unsigned int c = split_edge(e);
                 collapse_edge(Edge(apex, c));
             // apex is outside f
             } else {
+                printf("convex\n");
                 Edge e1 = longest_edge_in_set(edges);
                 edges.remove(e1);
                 Edge e2 = longest_edge_in_set(edges);
@@ -408,16 +420,20 @@ void TetMesh::bind_attributes(Renderable & renderable) {
     unsigned int num_indices = num_faces * 3;
     int * indices = new int[num_indices];
 
+    unsigned int buffer_i = 0;
     for (unsigned int i = 0; i < num_tets; i++) {
-        for (unsigned int j = 0; j < 4; j++) {
-            Face f = get_opposite_face(i, tets[i * 4 + j]);
-            indices[i * 12 + j * 3] = f.getV1();
-            indices[i * 12 + j * 3 + 1] = f.getV2();
-            indices[i * 12 + j * 3 + 2] = f.getV3();
+        if (tet_gravestones[i] != DEAD) {
+            for (unsigned int j = 0; j < 4; j++) {
+                Face f = get_opposite_face(i, tets[i * 4 + j]);
+                indices[buffer_i * 12 + j * 3] = f.getV1();
+                indices[buffer_i * 12 + j * 3 + 1] = f.getV2();
+                indices[buffer_i * 12 + j * 3 + 2] = f.getV3();
+            }
+            buffer_i++;
         }
     }
 
-    renderable.bind_indices(indices, num_indices * sizeof(int));
+    renderable.bind_indices(indices, buffer_i * 12 * sizeof(int));
     delete[] indices;
 }
 
