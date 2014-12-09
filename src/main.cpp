@@ -22,7 +22,7 @@
 #define FOV 45.0f
 #define FRAME_RATE 60
 
-int main() {
+int main(int argc, char* argv[]) {
 
     printf("Creating OpenGL context...\n");
     sf::ContextSettings settings;
@@ -49,15 +49,29 @@ int main() {
     glBlendEquation(GL_FUNC_ADD);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    printf("Loading basic mesh...\n");
-    IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
-
+    // Load/generate tet mesh based on command line argument:
+    TetMesh * tet_mesh;
     printf("Generating tet mesh...\n");
-    TetMesh * tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
-    // TetMesh * tet_mesh = TetMeshFactory::create_debug_tetmesh();
-    // TetMesh * tet_mesh = TetMeshFactory::create_big_debug_tetmesh();
-    // TetMesh * tet_mesh = TetMeshFactory::create_collapsed_tetmesh();
-    delete mesh;
+    /*
+     * 1: Sphere
+     * 2: Debug tetmesh
+     * 3: Big debug tetmesh
+     * 4: Collapsed tetmesh
+     */
+    std::string meshArg = "1";
+    if (argc >= 2) { meshArg = argv[1]; }
+
+    if (meshArg == "2") { // Debug tetmesh
+        tet_mesh = TetMeshFactory::create_debug_tetmesh();
+    } else if (meshArg == "3") { // Big debug tetmesh
+        tet_mesh = TetMeshFactory::create_big_debug_tetmesh();
+    } else if (meshArg == "4") { // Collapsed tetmesh
+        tet_mesh = TetMeshFactory::create_collapsed_tetmesh();
+    } else { // Default case (tet mesh #1)
+        IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
+        tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
+        delete mesh;
+    }
 
     printf("Evolving tet mesh...\n");
     for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
