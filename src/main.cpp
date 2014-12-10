@@ -84,8 +84,7 @@ int main(int argc, char* argv[]) {
 
         for (int deg = 1; deg <= 180; deg++) {
             printf("Evolving tet mesh (%d deg)...\n", deg);
-            //REAL angle = PI / 2;
-            REAL angle = 0.01745329251994329576923690768489;
+            REAL angle = PI / 180;
             for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
                 if (tet_mesh->get_vertex_status(i) == INTERFACE) {
                     glm::detail::tvec4<REAL, glm::precision::defaultp> v(tet_mesh->vertices[i*3], tet_mesh->vertices[i*3+1], tet_mesh->vertices[i*3+2], 1);

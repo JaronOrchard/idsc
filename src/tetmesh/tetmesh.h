@@ -58,13 +58,20 @@ private:
     TetMesh(std::vector<REAL> vertices, std::vector<REAL> vertex_targets,
             std::vector<unsigned int> tets, std::vector<status_t> tet_statuses,
             std::vector<GeometrySet<unsigned int>> vertex_tet_map);
+
+    struct DistanceMovableInfo {
+        DistanceMovableInfo() : distance(-1), tet_index(-1) { }
+        REAL distance;
+        int tet_index;
+    };
+
     bool advect();
     void retesselate();
     bool is_coplanar(unsigned int tet_id);
     void collapse_tet(unsigned int i);
     bool is_cap(Face f, unsigned int apex);
     void calculate_plane(REAL * plane, Face f);
-    REAL get_distance_movable(unsigned int vertex_index, REAL * velocity);
+    DistanceMovableInfo get_distance_movable(unsigned int vertex_index, REAL * velocity);
     REAL intersect_plane(REAL * plane, REAL * vertex, REAL * velocity);
 
     unsigned int get_opposite_vertex(unsigned int tet_id, Face face);

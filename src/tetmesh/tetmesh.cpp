@@ -62,38 +62,46 @@ bool TetMesh::advect() {
         } else {
             // normalize velocity
             vec_divide(velocity, velocity, target_distance);
-            REAL distance = get_distance_movable(i, velocity);
-            if (distance < EPSILON) { // Vertex can't move but wants to
-                std::cout << "warning: unable to move vertex " << i << ", could be in an infinite loop" << std::endl;
+            DistanceMovableInfo dminfo = get_distance_movable(i, velocity);
+            REAL distance = dminfo.distance;
+            if (distance == -1) {
+                std::cout << "warning: vertex " << i << " is on edge of world, exitting to avoid an infinite loop" << std::endl;
+                return true;
+            } else if (distance < EPSILON) { // Vertex can't move but wants to
+                std::cout << "warning: unable to move vertex " << i << ", exitting to avoid an infinite loop" << std::endl;
                 return true;
             } else if (distance >= target_distance) { // Vertex can move to target
                 vec_copy(&vertices[i * 3], &vertex_targets[i * 3]);
             } else {
                 vec_scale(velocity, velocity, distance);
                 vec_add(&vertices[i * 3], &vertices[i * 3], velocity);
+                if (!is_coplanar(dminfo.tet_index)) {
+                    std::cout << "warning: tet " << dminfo.tet_index << " should be coplanar" << std::endl;
+                }
             }
         }
     }
     return num_vertices_at_target == num_vertices;
 }
 
-REAL TetMesh::get_distance_movable(unsigned int vertex_index, REAL * velocity) {
+TetMesh::DistanceMovableInfo TetMesh::get_distance_movable(unsigned int vertex_index, REAL * velocity) {
+    DistanceMovableInfo dminfo;
     static REAL plane[] = {
         0, 0, 0, 0
     };
-    REAL min_distance = -1;
     GeometrySet<unsigned int> t = vertex_tet_map[vertex_index];
     for (auto it = t.begin(); it != t.end(); it++) {
         assert(tet_gravestones[*it] != DEAD);
         Face f = get_opposite_face(*it, vertex_index);
         calculate_plane(plane, f);
         REAL distance = intersect_plane(plane, &vertices[vertex_index * 3], velocity);
-        if (distance > 0 && (distance < min_distance || min_distance == -1)) {
-            min_distance = distance;
+        if (distance > 0 && (distance < dminfo.distance || dminfo.distance == -1)) {
+            dminfo.distance = distance;
+            dminfo.tet_index = *it;
         }
 
     }
-    return min_distance;
+    return dminfo;
 }
 
 void TetMesh::calculate_plane(REAL * plane, Face f) {
