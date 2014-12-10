@@ -102,6 +102,10 @@ TetMesh * TetMeshFactory::from_indexed_face_set(IndexedFaceSet & ifs) {
         vec_copy(&vertices[(i + inner_num_v) * 3], &outer_output.pointlist[i * 3]);
     }
 
+    for (int i = 0; i < num_v * 3; i++) {
+        targets[i] = vertices[i];
+    }
+
     int inner_num_t = inner_output.numberoftetrahedra;
     int num_t = outer_output.numberoftetrahedra + inner_num_t;
     std::vector<unsigned int> tetrahedra;
