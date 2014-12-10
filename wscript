@@ -64,19 +64,19 @@ def get_deps(ctx):
     deps_node.mkdir()
     for dep in deps:
         dep_name = dep['name']
-        arcive_node = deps_node.make_node(dep_name + '_download')
+        archive_node = deps_node.make_node(dep_name + '_download')
         src_node = deps_node.make_node(dep_name + '_src')
 
         # Downloading Task
         dl_task = DownloadSource(env=ctx.env)
         dl_task.url = dep['url']
         dl_task.hash_sha256 = dep['hash']
-        dl_task.set_outputs(arcive_node)
+        dl_task.set_outputs(archive_node)
         ctx.add_to_group(dl_task)
 
         # Extraction Task
         unzip_task = UnzipArchive(env=ctx.env)
-        unzip_task.set_inputs(arcive_node)
+        unzip_task.set_inputs(archive_node)
         unzip_task.set_outputs(src_node)
         ctx.add_to_group(unzip_task)
 

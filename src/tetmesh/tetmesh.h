@@ -19,6 +19,11 @@ typedef enum {
     DEAD = 1
 } gravestone_t;
 
+typedef enum {
+    STATIC = 0,
+    MOVING = 1
+} vertex_status_t;
+
 class TetMesh {
 
 public:
@@ -36,6 +41,7 @@ public:
 
     std::vector<REAL> vertices;         // 3 REALs per vertex for x, y, z
     std::vector<REAL> vertex_targets;   // 3 REALs per vertex for x, y, z
+    std::vector<vertex_status_t> vertex_statuses;
 
     status_t get_vertex_status(unsigned int vertex_index);
     
@@ -62,7 +68,7 @@ private:
     Edge get_opposite_edge(unsigned int tet_id, Edge e);
     Face get_opposite_face(unsigned int tet_id, unsigned int vert_id);
     unsigned int split_edge(Edge edge);
-    unsigned int collapse_edge(Edge edge);
+    int collapse_edge(Edge edge);
 
     REAL get_edge_length(Edge edge);
     REAL distance_between_point_and_edge(Edge edge, int vertex_index);
@@ -77,7 +83,7 @@ private:
     void delete_tet(unsigned int t);
     unsigned int insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsigned int v4, status_t tet_status);
     unsigned int insert_vertex(Edge edge);
-    //unsigned int get_opposite_vertex( Face face );
+    unsigned int insert_vertex(Edge edge, unsigned int moving_vertex);
 };
 
 #endif

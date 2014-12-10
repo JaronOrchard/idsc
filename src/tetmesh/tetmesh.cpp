@@ -28,6 +28,7 @@ TetMesh::TetMesh(std::vector<REAL> vertices, std::vector<REAL> vertex_targets,
     this->tet_statuses = tet_statuses;
     this->vertex_tet_map = vertex_tet_map;
 
+    vertex_statuses.resize(vertices.size() / 3, STATIC);
     vertex_gravestones.resize(vertices.size() / 3, ALIVE);
     tet_gravestones.resize(tets.size() / 3, ALIVE);
 }
@@ -131,10 +132,6 @@ TetMesh * TetMesh::from_indexed_face_set(IndexedFaceSet & ifs) {
     }
     for (int i = orig_num_v; i < orig_num_v + outer_num_v; i++) {
         vec_copy(&vertices[(i + inner_num_v) * 3], &outer_output.pointlist[i * 3]);
-    }
-
-    for (int i = 0; i < num_v * 3; i++) {
-        targets[i] = vertices[i];
     }
 
     int inner_num_t = inner_output.numberoftetrahedra;
@@ -332,7 +329,7 @@ bool TetMesh::advect() {
     unsigned int num_vertices_at_target = 0;
     unsigned int num_vertices = vertices.size() / 3;
     for (unsigned int i = 0; i < num_vertices; i++) {
-        if (vertex_gravestones[i] == DEAD) {
+        if (vertex_gravestones[i] == DEAD || vertex_statuses[i] == STATIC) {
             num_vertices_at_target++;
             continue;
         }
@@ -347,8 +344,7 @@ bool TetMesh::advect() {
             vec_divide(velocity, velocity, target_distance);
             REAL distance = get_distance_movable(i, velocity);
             if (distance < EPSILON) { // Vertex can't move but wants to
-                std::cout << "warning: unable to move vertex " << i << ", exiting to avoid an infinite loop" << std::endl;
-                return true;
+                std::cout << "warning: unable to move vertex " << i << ", could be in an infinite loop" << std::endl;
             } else if (distance >= target_distance) { // Vertex can move to target
                 vec_copy(&vertices[i * 3], &vertex_targets[i * 3]);
             } else {
@@ -357,7 +353,7 @@ bool TetMesh::advect() {
             }
         }
     }
-    return num_vertices_at_target >= num_vertices;
+    return num_vertices_at_target == num_vertices;
 }
 
 REAL TetMesh::get_distance_movable(unsigned int vertex_index, REAL * velocity) {
@@ -591,13 +587,28 @@ unsigned int TetMesh::split_edge(Edge edge) {
     return c;
 }
 
-unsigned int TetMesh::collapse_edge(Edge edge) {
+// TODO: collapsing could possible invert a tet
+//      Use getDistanceMovable to make sure this does not happen
+int TetMesh::collapse_edge(Edge edge) {
     unsigned int v1 = edge.getV1();
     unsigned int v2 = edge.getV2();
+    if (vertex_statuses[v1] == MOVING && vertex_statuses[v2] == MOVING) {
+        std::cout << "warning: unable to collapse edge " << v1 << ", " << v2
+            << ".  May be in an infinite loop." << std::endl;
+        return -1;
+    }
     GeometrySet<unsigned int> deleted = vertex_tet_map[v1].intersectWith(vertex_tet_map[v2]);
     GeometrySet<unsigned int> affected = vertex_tet_map[v1].outersectWith(vertex_tet_map[v2]);
 
-    unsigned int c = insert_vertex(edge);
+    unsigned int c;
+
+    if (vertex_statuses[v1] == MOVING) {
+        c = insert_vertex(edge, v1);
+    } else if (vertex_statuses[v2] == MOVING) {
+        c = insert_vertex(edge, v2);
+    } else {
+        c = insert_vertex(edge);
+    }
 
     for (auto it = affected.begin(); it != affected.end(); it++) {
         for (unsigned int i = 0; i < 4; i++) {
@@ -628,12 +639,19 @@ unsigned int TetMesh::insert_vertex(Edge edge) {
     vec_divide(c_data, c_data, 2);
 
     vertex_targets.resize((c + 1) * 3);
-    c_data = &vertex_targets[c * 3];
-    vec_add(c_data, &vertex_targets[v1 * 3], &vertex_targets[v2 * 3]);
-    vec_divide(c_data, c_data, 2);
 
     vertex_gravestones.push_back(ALIVE);
+    vertex_statuses.push_back(STATIC);
     vertex_tet_map.push_back(GeometrySet<unsigned int>());
+    return c;
+}
+
+unsigned int TetMesh::insert_vertex(Edge edge, unsigned int moving_vertex) {
+    unsigned int c = insert_vertex(edge);
+
+    vec_copy(&vertex_targets[c * 3], &vertex_targets[moving_vertex * 3]);
+
+    vertex_statuses[c] = MOVING;
     return c;
 }
 
@@ -751,7 +769,6 @@ Face TetMesh::largest_face_in_set(GeometrySet<Face> set_of_faces) {
     };
     REAL * v1 = &vertices[faces[0].getV1() * 3];
     REAL * v2 = &vertices[faces[0].getV2() * 3];
-    REAL * v3 = &vertices[faces[0].getV3() * 3];
     vec_subtract(base, v1, v2);
     REAL b = vec_length(base);
     REAL h = distance_between_point_and_edge(Edge(faces[0].getV1(), faces[0].getV2()), faces[0].getV3());
@@ -760,7 +777,6 @@ Face TetMesh::largest_face_in_set(GeometrySet<Face> set_of_faces) {
     for (size_t i = 1; i < faces.size(); i++) {
         v1 = &vertices[faces[i].getV1() * 3];
         v2 = &vertices[faces[i].getV2() * 3];
-        v3 = &vertices[faces[i].getV3() * 3];
         vec_subtract(base, v1, v2);
         b = vec_length(base);
         h = distance_between_point_and_edge(Edge(faces[i].getV1(), faces[i].getV2()), faces[i].getV3());
