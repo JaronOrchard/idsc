@@ -72,18 +72,23 @@ int main(int argc, char* argv[]) {
 
     if (meshArg == "2") { // Debug tetmesh
         tet_mesh = TetMeshFactory::create_debug_tetmesh();
+        printf("Evolving tet mesh ...\n");
+        tet_mesh->evolve();
     } else if (meshArg == "3") { // Big debug tetmesh
         tet_mesh = TetMeshFactory::create_big_debug_tetmesh();
+        printf("Evolving tet mesh ...\n");
+        tet_mesh->evolve();
     } else if (meshArg == "4") { // Collapsed tetmesh
         tet_mesh = TetMeshFactory::create_collapsed_tetmesh();
+        printf("Evolving tet mesh ...\n");
+        tet_mesh->evolve();
     } else if (meshArg == "5") { // Rotated sphere tetmesh
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         delete mesh;
 
 
-        for (int deg = 1; deg <= 180; deg++) {
-            printf("Evolving tet mesh (%d deg)...\n", deg);
+        for (int deg = 1; deg <= 57; deg++) {
             REAL angle = PI / 180;
             for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
                 if (tet_mesh->get_vertex_status(i) == INTERFACE) {
@@ -95,6 +100,7 @@ int main(int argc, char* argv[]) {
                     tet_mesh->vertex_statuses[i] = MOVING;
                 }
             }
+            printf("Evolving tet mesh (%d deg)...\n", deg);
             tet_mesh->evolve();
         }
     } else if (meshArg == "6") { // C-mesh
@@ -113,13 +119,15 @@ int main(int argc, char* argv[]) {
                 tet_mesh->vertex_statuses[i] = MOVING;
             }
         }
+        printf("Evolving tet mesh ...\n");
+        tet_mesh->evolve();
     } else { // Default case (tet mesh #1)
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
+        printf("Evolving tet mesh ...\n");
+        tet_mesh->evolve();
         delete mesh;
     }
-   // printf("Evolving tet mesh...\n");
-   // tet_mesh->evolve();
 
     printf("Displaying tet mesh...\n");
 

@@ -8,6 +8,7 @@
 
 // threshold for determining geometric equality
 #define EPSILON 0.00001
+#define MAX_ITERATIONS 100
 
 #define absolute(a) ((a) < 0 ? -(a) : (a))
 
@@ -31,10 +32,16 @@ TetMesh::~TetMesh() {
 
 
 void TetMesh::evolve() {
+    int num_iterations = 0;
     bool done = false;
     while (!done) {
         done = advect();
         retesselate();
+        num_iterations++;
+        if (MAX_ITERATIONS != -1 && num_iterations >= MAX_ITERATIONS) {
+            std::cout << "warning: detected infinite loop, exitting" << std::endl;
+            done = true;
+        }
     }
     for (unsigned int i = 0; i < vertices.size() / 3; i++) {
         vertex_statuses[i] = STATIC;
@@ -54,7 +61,6 @@ bool TetMesh::advect() {
             continue;
         }
         vec_subtract(velocity, &vertex_targets[i * 3], &vertices[i * 3]);
-        // TODO: for performance, can keep flag of whether at target and calculate this in else
         REAL target_distance = vec_length(velocity);
         // this vertex is already moved
         if (target_distance < EPSILON) {
@@ -66,10 +72,10 @@ bool TetMesh::advect() {
             REAL distance = dminfo.distance;
             if (distance == -1) {
                 std::cout << "warning: vertex " << i << " is on edge of world, exitting to avoid an infinite loop" << std::endl;
-                return true;
+                // return true;
             } else if (distance < EPSILON) { // Vertex can't move but wants to
                 std::cout << "warning: unable to move vertex " << i << ", exitting to avoid an infinite loop" << std::endl;
-                return true;
+                // return true;
             } else if (distance >= target_distance) { // Vertex can move to target
                 vec_copy(&vertices[i * 3], &vertex_targets[i * 3]);
             } else {
@@ -77,6 +83,7 @@ bool TetMesh::advect() {
                 vec_add(&vertices[i * 3], &vertices[i * 3], velocity);
                 if (!is_coplanar(dminfo.tet_index)) {
                     std::cout << "warning: tet " << dminfo.tet_index << " should be coplanar" << std::endl;
+                    // return true;
                 }
             }
         }
@@ -118,7 +125,7 @@ void TetMesh::calculate_plane(REAL * plane, Face f) {
     vec_subtract(temp1, v1, v3);
     vec_subtract(temp2, v2, v3);
     vec_cross(plane, temp1, temp2);
-    vec_divide(plane, plane, vec_length(plane));
+    // vec_divide(plane, plane, vec_length(plane));
     plane[3] = -vec_dot(plane, v3);
 }
 
@@ -128,7 +135,7 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
     if (absolute(denominator) < EPSILON) {
         return -1;
     }
-    return (vec_dot(vertex, plane) + plane[3]) / absolute(denominator);
+    return - (vec_dot(vertex, plane) + plane[3]) / denominator;
 }
 
 void TetMesh::retesselate() {
@@ -145,14 +152,29 @@ void TetMesh::retesselate() {
 }
 
 bool TetMesh::is_coplanar(unsigned int tet_id) {
-    static REAL plane[] = {
-        0, 0, 0, 0
+    static REAL u[] = {
+        0, 0, 0
     };
-    GeometrySet<Face> faces = get_faces_from_tet(tet_id);
-    Face test_face = *faces.begin();
-    calculate_plane(plane, test_face);
-    REAL * opp_v = &vertices[get_opposite_vertex(tet_id, test_face) * 3];
-    return absolute(vec_dot(plane, opp_v) + plane[3]) < EPSILON;
+    static REAL v[] = {
+        0, 0, 0
+    };
+    static REAL w[] = {
+        0, 0, 0
+    };
+    static REAL x[] = {
+        0, 0, 0
+    };
+
+    REAL * v1 = &vertices[tets[tet_id * 4] * 3];
+    REAL * v2 = &vertices[tets[tet_id * 4 + 1] * 3];
+    REAL * v3 = &vertices[tets[tet_id * 4 + 2] * 3];
+    REAL * v4 = &vertices[tets[tet_id * 4 + 3] * 3];
+    vec_subtract(u, v2, v1);
+    vec_subtract(v, v3, v2);
+    vec_subtract(w, v4, v3);
+    vec_cross(x, u, v);
+
+    return absolute(vec_dot(x, w)) < EPSILON;
 }
 
 void TetMesh::collapse_tet(unsigned int i) {
@@ -161,7 +183,6 @@ void TetMesh::collapse_tet(unsigned int i) {
     // vertex on vertex
     Edge shortest_edge = shortest_edge_in_set(edges);
     if (get_edge_length(shortest_edge) < EPSILON) {
-        printf("vertex on vertex\n");
         collapse_edge(shortest_edge);
         // Edge opp_edge = get_opposite_edge(i, shortest_edge);
         // unsigned int c = split_edge(opp_edge);
@@ -187,7 +208,6 @@ void TetMesh::collapse_tet(unsigned int i) {
         }
     }
     if (min_dist < EPSILON) {
-        printf("vertex on edge\n");
         unsigned int c = split_edge(closest_edge);
         collapse_edge(Edge(closest_v, c));
         return;
@@ -197,12 +217,10 @@ void TetMesh::collapse_tet(unsigned int i) {
     Face f = largest_face_in_set(faces);
     unsigned int apex = get_opposite_vertex(i, f);
     if (is_cap(f, apex)) {
-        printf("concave\n");
         Edge e = longest_edge_in_set(edges);
         unsigned int c = split_edge(e);
         collapse_edge(Edge(apex, c));
     } else {
-        printf("convex\n");
         Edge e1 = longest_edge_in_set(edges);
         edges.remove(e1);
         Edge e2 = longest_edge_in_set(edges);
@@ -355,7 +373,7 @@ unsigned int TetMesh::insert_vertex(Edge edge, unsigned int moving_vertex) {
     unsigned int c = insert_vertex(edge);
 
     vec_copy(&vertex_targets[c * 3], &vertex_targets[moving_vertex * 3]);
-    vec_copy(&vertices[c * 3], &vertex_targets[moving_vertex * 3]);
+    vec_copy(&vertices[c * 3], &vertices[moving_vertex * 3]);
 
     vertex_statuses[c] = MOVING;
     return c;
