@@ -62,6 +62,7 @@ bool TetMesh::advect() {
             REAL distance = get_distance_movable(i, velocity);
             if (distance < EPSILON) { // Vertex can't move but wants to
                 std::cout << "warning: unable to move vertex " << i << ", could be in an infinite loop" << std::endl;
+                return true;
             } else if (distance >= target_distance) { // Vertex can move to target
                 vec_copy(&vertices[i * 3], &vertex_targets[i * 3]);
             } else {
@@ -329,6 +330,7 @@ unsigned int TetMesh::insert_vertex(Edge edge, unsigned int moving_vertex) {
     unsigned int c = insert_vertex(edge);
 
     vec_copy(&vertex_targets[c * 3], &vertex_targets[moving_vertex * 3]);
+    vec_copy(&vertices[c * 3], &vertex_targets[moving_vertex * 3]);
 
     vertex_statuses[c] = MOVING;
     return c;

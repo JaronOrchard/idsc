@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
      * 4: Collapsed tetmesh
      * 5: Sphere, rotated
      * 6: C-mesh, joining together
+     * 7: Sphere, stretched in the x-direction
      */
     std::string meshArg = "1";
     if (argc >= 2) { meshArg = argv[1]; }
@@ -81,7 +82,7 @@ int main(int argc, char* argv[]) {
         delete mesh;
 
         REAL angle = PI / 2;
-        for (int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
+        for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
             if (tet_mesh->get_vertex_status(i) == INTERFACE) {
                 glm::detail::tvec4<REAL, glm::precision::defaultp> v(tet_mesh->vertices[i*3], tet_mesh->vertices[i*3+1], tet_mesh->vertices[i*3+2], 1);
                 glm::detail::tvec4<REAL, glm::precision::defaultp> v2 = glm::rotateX(v, angle);
@@ -95,19 +96,22 @@ int main(int argc, char* argv[]) {
 
         // C-mesh stuff goes here        
 
+    } else if (meshArg == "7") { // Stretched sphere
+        IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
+        tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
+        for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
+            if (tet_mesh->get_vertex_status(i) == INTERFACE) {
+                // scale x
+                tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.2;
+                tet_mesh->vertex_statuses[i] = MOVING;
+            }
+        }
     } else { // Default case (tet mesh #1)
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         delete mesh;
     }
-
     printf("Evolving tet mesh...\n");
-    for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
-        if (tet_mesh->get_vertex_status(i) == INTERFACE) {
-            // scale and translate x
-            //tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.2;
-        }
-    }
     tet_mesh->evolve();
 
     printf("Displaying tet mesh...\n");
