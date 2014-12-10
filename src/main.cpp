@@ -14,6 +14,7 @@
 #include "render/TetrahedralViewer.h"
 #include "render/render_utils.h"
 #include "tetmesh/tetmesh.h"
+#include "tetmesh/TetMeshFactory.h"
 #include "util/geometrySet.h"
 
 #define WINDOW_WIDTH 1440
@@ -52,10 +53,10 @@ int main() {
     IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
 
     printf("Generating tet mesh...\n");
-    TetMesh * tet_mesh = TetMesh::from_indexed_face_set(*mesh);
-    // TetMesh * tet_mesh = TetMesh::create_debug_tetmesh();
-    // TetMesh * tet_mesh = TetMesh::create_big_debug_tetmesh();
-    // TetMesh * tet_mesh = TetMesh::create_collapsed_tetmesh();
+    TetMesh * tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
+    // TetMesh * tet_mesh = TetMeshFactory::create_debug_tetmesh();
+    // TetMesh * tet_mesh = TetMeshFactory::create_big_debug_tetmesh();
+    // TetMesh * tet_mesh = TetMeshFactory::create_collapsed_tetmesh();
     delete mesh;
 
     printf("Evolving tet mesh...\n");

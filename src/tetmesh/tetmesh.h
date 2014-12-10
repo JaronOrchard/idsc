@@ -24,14 +24,12 @@ typedef enum {
     MOVING = 1
 } vertex_status_t;
 
+class TetMeshFactory;
+
 class TetMesh {
+    friend class TetMeshFactory;
 
 public:
-    
-    static TetMesh * from_indexed_face_set(IndexedFaceSet & ifs);
-    static TetMesh * create_debug_tetmesh();
-    static TetMesh * create_big_debug_tetmesh();
-    static TetMesh * create_collapsed_tetmesh();
 
     void evolve();
 

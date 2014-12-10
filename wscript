@@ -208,6 +208,7 @@ def build(ctx):
         'src/model/IndexedFaceSet.cpp',
 
         'src/tetmesh/tetmesh.cpp',
+        'src/tetmesh/TetMeshFactory.cpp',
 
         'src/util/geometry.cpp'
     ]
