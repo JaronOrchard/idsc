@@ -25,9 +25,11 @@ typedef enum {
 } vertex_status_t;
 
 class TetMeshFactory;
+class TetrahedralViewer;
 
 class TetMesh {
     friend class TetMeshFactory;
+    friend class TetrahedralViewer;
 
 public:
 

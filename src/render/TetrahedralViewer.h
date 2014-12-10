@@ -2,6 +2,7 @@
 #ifndef _TETRAHEDRAL_VIEWER_H
 #define _TETRAHEDRAL_VIEWER_H
 
+#include "tetmesh/tetmesh.h"
 #include "TetrahedralViewer.h"
 #include "Renderable.h"
 #include <SFML/Graphics.hpp>
@@ -20,6 +21,8 @@ class TetrahedralViewer {
         void update();
         void handle_event(sf::Event & event);
         void handle_callback(tgui::Callback & callback);
+
+        void bind_attributes(TetMesh & tetmesh, Renderable & renderable);
     private:
         Renderable * renderable;
         tgui::Gui * gui;

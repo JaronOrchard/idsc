@@ -213,44 +213,6 @@ void TetMesh::retesselate() {
     }
 }
 
-void TetMesh::bind_attributes(Renderable & renderable) {
-    // ensure vertices are not double precision
-    float * verts = new float[vertices.size()];
-    for (unsigned int i = 0; i < vertices.size(); i++) {
-        verts[i] = vertices[i];
-    }
-    renderable.bind_attribute(verts, VEC3_FLOAT, vertices.size() / 3, "vertex_position");
-    delete[] verts;
-
-    int * vertex_statuses = new int[vertices.size() / 3];
-    for (unsigned int i = 0; i < vertices.size() / 3; i++) {
-        vertex_statuses[i] = (int)get_vertex_status(i);
-    }
-    renderable.bind_attribute(&vertex_statuses[0], SCALAR_INT, vertices.size() / 3, "vertex_status");
-    delete[] vertex_statuses;
-
-    unsigned int num_tets = tets.size() / 4;
-    unsigned int num_faces = num_tets * 4;
-    unsigned int num_indices = num_faces * 3;
-    int * indices = new int[num_indices];
-
-    unsigned int buffer_i = 0;
-    for (unsigned int i = 0; i < num_tets; i++) {
-        if (tet_gravestones[i] != DEAD) {
-            for (unsigned int j = 0; j < 4; j++) {
-                Face f = get_opposite_face(i, tets[i * 4 + j]);
-                indices[buffer_i * 12 + j * 3] = f.getV1();
-                indices[buffer_i * 12 + j * 3 + 1] = f.getV2();
-                indices[buffer_i * 12 + j * 3 + 2] = f.getV3();
-            }
-            buffer_i++;
-        }
-    }
-
-    renderable.bind_indices(indices, buffer_i * 12 * sizeof(int));
-    delete[] indices;
-}
-
 status_t TetMesh::get_vertex_status(unsigned int vertex_index) {
     bool all_inside = true;
     bool all_outside = true;

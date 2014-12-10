@@ -75,14 +75,14 @@ int main() {
     glUseProgram(shader->get_id());
     glBindVertexArray(vao);
     Renderable renderable(shader, true, false, GL_TRIANGLES);
-    tet_mesh->bind_attributes(renderable);
-    check_gl_error();
-    delete tet_mesh;
 
     tgui::Gui gui(window);
     gui.setGlobalFont("assets/fonts/DejaVuSans.ttf");
     TetrahedralViewer viewer(&renderable, &gui);
     viewer.init(WINDOW_WIDTH, WINDOW_HEIGHT, FOV);
+    viewer.bind_attributes(*tet_mesh, renderable);
+    check_gl_error();
+    delete tet_mesh;
 
     printf("Starting display...\n");
     sf::Event event;

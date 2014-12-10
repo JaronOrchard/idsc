@@ -149,3 +149,42 @@ void TetrahedralViewer::update() {
     renderable->bind_uniform(&opacity, SCALAR_FLOAT, 1, "opacity");
 }
 
+void TetrahedralViewer::bind_attributes(TetMesh & tetmesh, Renderable & renderable) {
+    // ensure vertices are not double precision
+    float * verts = new float[tetmesh.vertices.size()];
+    for (unsigned int i = 0; i < tetmesh.vertices.size(); i++) {
+        verts[i] = tetmesh.vertices[i];
+    }
+    renderable.bind_attribute(verts, VEC3_FLOAT, tetmesh.vertices.size() / 3, "vertex_position");
+    delete[] verts;
+
+    int * vertex_statuses = new int[tetmesh.vertices.size() / 3];
+    for (unsigned int i = 0; i < tetmesh.vertices.size() / 3; i++) {
+        vertex_statuses[i] = (int)tetmesh.get_vertex_status(i);
+    }
+    renderable.bind_attribute(&vertex_statuses[0], SCALAR_INT, tetmesh.vertices.size() / 3, "vertex_status");
+    delete[] vertex_statuses;
+
+    unsigned int num_tets = tetmesh.tets.size() / 4;
+    unsigned int num_faces = num_tets * 4;
+    unsigned int num_indices = num_faces * 3;
+    int * indices = new int[num_indices];
+
+    unsigned int buffer_i = 0;
+    for (unsigned int i = 0; i < num_tets; i++) {
+        if (tetmesh.tet_gravestones[i] != DEAD) {
+            for (unsigned int j = 0; j < 4; j++) {
+                Face f = tetmesh.get_opposite_face(i, tetmesh.tets[i * 4 + j]);
+                indices[buffer_i * 12 + j * 3] = f.getV1();
+                indices[buffer_i * 12 + j * 3 + 1] = f.getV2();
+                indices[buffer_i * 12 + j * 3 + 2] = f.getV3();
+            }
+            buffer_i++;
+        }
+    }
+
+    renderable.bind_indices(indices, buffer_i * 12 * sizeof(int));
+    delete[] indices;
+}
+
+
