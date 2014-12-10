@@ -103,6 +103,8 @@ int main(int argc, char* argv[]) {
             if (tet_mesh->get_vertex_status(i) == INTERFACE) {
                 // scale x
                 tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.2;
+                tet_mesh->vertex_targets[i * 3 + 1] = tet_mesh->vertices[i * 3 + 1];
+                tet_mesh->vertex_targets[i * 3 + 2] = tet_mesh->vertices[i * 3 + 2];
                 tet_mesh->vertex_statuses[i] = MOVING;
             }
         }
