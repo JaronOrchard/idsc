@@ -87,6 +87,7 @@
     <ClCompile Include="..\..\..\src\render\Shader.cpp" />
     <ClCompile Include="..\..\..\src\render\TetrahedralViewer.cpp" />
     <ClCompile Include="..\..\..\src\tetmesh\tetmesh.cpp" />
+    <ClCompile Include="..\..\..\src\tetmesh\TetMeshFactory.cpp" />
     <ClCompile Include="..\..\..\src\util\geometry.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -96,6 +97,7 @@
     <ClInclude Include="..\..\..\src\render\Shader.h" />
     <ClInclude Include="..\..\..\src\render\TetrahedralViewer.h" />
     <ClInclude Include="..\..\..\src\tetmesh\tetmesh.h" />
+    <ClInclude Include="..\..\..\src\tetmesh\TetMeshFactory.h" />
     <ClInclude Include="..\..\..\src\util\geometry.h" />
     <ClInclude Include="..\..\..\src\util\geometrySet.h" />
   </ItemGroup>

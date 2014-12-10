@@ -48,6 +48,9 @@
     <ClCompile Include="..\..\..\src\util\geometry.cpp">
       <Filter>util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\tetmesh\TetMeshFactory.cpp">
+      <Filter>tetmesh</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\model\IndexedFaceSet.h">
@@ -73,6 +76,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\util\geometry.h">
       <Filter>util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\tetmesh\TetMeshFactory.h">
+      <Filter>tetmesh</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
