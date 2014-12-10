@@ -104,10 +104,11 @@ int main(int argc, char* argv[]) {
             tet_mesh->evolve();
         }
     } else if (meshArg == "6") { // C-mesh
+        IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/c_mesh.obj");
+        tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
+        delete mesh;
 
-        // C-mesh stuff goes here        
-
-    } else if (meshArg == "7") { // Stretched sphere
+    }  else if (meshArg == "7") { // Stretched sphere
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
