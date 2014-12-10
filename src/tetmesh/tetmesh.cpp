@@ -36,6 +36,9 @@ void TetMesh::evolve() {
         done = advect();
         retesselate();
     }
+    for (unsigned int i = 0; i < vertices.size() / 3; i++) {
+        vertex_statuses[i] = STATIC;
+    }
 }
 
 // move vertices as far toward target as possible
@@ -130,9 +133,6 @@ void TetMesh::retesselate() {
         if (is_coplanar(i)) {
             collapse_tet(i);
         }
-    }
-    for (unsigned int i = 0; i < vertices.size() / 3; i++) {
-        vertex_statuses[i] = STATIC;
     }
 }
 
