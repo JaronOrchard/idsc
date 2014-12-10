@@ -60,8 +60,11 @@ private:
             std::vector<GeometrySet<unsigned int>> vertex_tet_map);
     bool advect();
     void retesselate();
-    REAL get_distance_movable(unsigned int vertex_index, REAL * velocity);
+    bool is_coplanar(unsigned int tet_id);
+    void collapse_tet(unsigned int i);
+    bool is_cap(Face f, unsigned int apex);
     void calculate_plane(REAL * plane, Face f);
+    REAL get_distance_movable(unsigned int vertex_index, REAL * velocity);
     REAL intersect_plane(REAL * plane, REAL * vertex, REAL * velocity);
 
     unsigned int get_opposite_vertex(unsigned int tet_id, Face face);
@@ -80,7 +83,6 @@ private:
     GeometrySet<Edge> get_edges_from_tet(int tet_id);
     GeometrySet<Face> get_faces_from_tet(int tet_id);
 
-    void collapse_tet(unsigned int i);
     void delete_tet(unsigned int t);
     unsigned int insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsigned int v4, status_t tet_status);
     unsigned int insert_vertex(Edge edge);

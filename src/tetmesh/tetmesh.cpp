@@ -121,21 +121,13 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 }
 
 void TetMesh::retesselate() {
-    static REAL plane[] = {
-        0, 0, 0, 0
-    };
     unsigned int num_tets = tets.size() / 4;
     for (unsigned int i = 0; i < num_tets; i++) {
         if (tet_gravestones[i] == DEAD) {
             continue;
         }
 
-        GeometrySet<Face> faces = get_faces_from_tet(i);
-        Face test_face = *faces.begin();
-        calculate_plane(plane, test_face);
-        REAL * opp_v = &vertices[get_opposite_vertex(i, test_face) * 3];
-        bool is_coplanar = absolute(vec_dot(plane, opp_v) + plane[3]) < EPSILON;
-        if (is_coplanar) {
+        if (is_coplanar(i)) {
             collapse_tet(i);
         }
     }
@@ -144,19 +136,18 @@ void TetMesh::retesselate() {
     }
 }
 
+bool TetMesh::is_coplanar(unsigned int tet_id) {
+    static REAL plane[] = {
+        0, 0, 0, 0
+    };
+    GeometrySet<Face> faces = get_faces_from_tet(tet_id);
+    Face test_face = *faces.begin();
+    calculate_plane(plane, test_face);
+    REAL * opp_v = &vertices[get_opposite_vertex(tet_id, test_face) * 3];
+    return absolute(vec_dot(plane, opp_v) + plane[3]) < EPSILON;
+}
+
 void TetMesh::collapse_tet(unsigned int i) {
-    static REAL u[] = {
-        0, 0, 0
-    };
-    static REAL v[] = {
-        0, 0, 0
-    };
-    static REAL w[] = {
-        0, 0, 0
-    };
-    static REAL x[] = {
-        0, 0, 0
-    };
     GeometrySet<Edge> edges = get_edges_from_tet(i);
 
     // vertex on vertex
@@ -175,45 +166,33 @@ void TetMesh::collapse_tet(unsigned int i) {
     Edge closest_edge(0, 0);
     REAL min_dist = -1;
     for (unsigned int j = 0; j < 4; j++) {
-        unsigned int v = tets[i * 4];
-        Face f = get_opposite_face(i, v);
+        unsigned int vert = tets[i * 4];
+        Face f = get_opposite_face(i, vert);
         GeometrySet<Edge> opp_edges = get_edges_from_face(f);
         for (auto it = opp_edges.begin(); it != opp_edges.end(); it++) {
-            REAL d = distance_between_point_and_edge(*it, v);
+            REAL d = distance_between_point_and_edge(*it, vert);
             if (d < min_dist || min_dist == -1) {
-                closest_v = v;
+                closest_v = vert;
                 closest_edge = *it;
                 min_dist = d;
             }
         }
     }
     if (min_dist < EPSILON) {
-        printf("vertex on edge %f\n", min_dist);
+        printf("vertex on edge\n");
         unsigned int c = split_edge(closest_edge);
         collapse_edge(Edge(closest_v, c));
         return;
     }
 
-    // concave and convex flattened tets
     GeometrySet<Face> faces = get_faces_from_tet(i);
     Face f = largest_face_in_set(faces);
     unsigned int apex = get_opposite_vertex(i, f);
-    REAL * apex_data = &vertices[apex * 3];
-    REAL * v1 = &vertices[f.getV1() * 3];
-    REAL * v2 = &vertices[f.getV2() * 3];
-    REAL * v3 = &vertices[f.getV3() * 3];
-    vec_subtract(u, apex_data, v1);
-    vec_subtract(v, v2, apex_data);
-    vec_subtract(w, v3, v2);
-    vec_cross(x, u, v);
-    vec_cross(u, v, w);
-    // apex is inside f
-    if (vec_dot(x, u) < 0) {
+    if (is_cap(f, apex)) {
         printf("concave\n");
         Edge e = longest_edge_in_set(edges);
         unsigned int c = split_edge(e);
         collapse_edge(Edge(apex, c));
-    // apex is outside f
     } else {
         printf("convex\n");
         Edge e1 = longest_edge_in_set(edges);
@@ -223,6 +202,33 @@ void TetMesh::collapse_tet(unsigned int i) {
         unsigned int c2 = split_edge(e2);
         collapse_edge(Edge(c1, c2));
     }
+}
+
+bool TetMesh::is_cap(Face f, unsigned int apex) {
+    static REAL u[] = {
+        0, 0, 0
+    };
+    static REAL v[] = {
+        0, 0, 0
+    };
+    static REAL w[] = {
+        0, 0, 0
+    };
+    static REAL x[] = {
+        0, 0, 0
+    };
+
+    REAL * apex_data = &vertices[apex * 3];
+    REAL * v1 = &vertices[f.getV1() * 3];
+    REAL * v2 = &vertices[f.getV2() * 3];
+    REAL * v3 = &vertices[f.getV3() * 3];
+    vec_subtract(u, apex_data, v1);
+    vec_subtract(v, v2, apex_data);
+    vec_subtract(w, v3, v2);
+    vec_cross(x, u, v);
+    vec_cross(u, v, w);
+
+    return vec_dot(x, u) < 0;
 }
 
 status_t TetMesh::get_vertex_status(unsigned int vertex_index) {
