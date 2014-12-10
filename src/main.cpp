@@ -81,16 +81,22 @@ int main(int argc, char* argv[]) {
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         delete mesh;
 
-        REAL angle = PI / 2;
-        for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
-            if (tet_mesh->get_vertex_status(i) == INTERFACE) {
-                glm::detail::tvec4<REAL, glm::precision::defaultp> v(tet_mesh->vertices[i*3], tet_mesh->vertices[i*3+1], tet_mesh->vertices[i*3+2], 1);
-                glm::detail::tvec4<REAL, glm::precision::defaultp> v2 = glm::rotateX(v, angle);
-                tet_mesh->vertex_targets[i*3] = v2[0];
-                tet_mesh->vertex_targets[i*3+1] = v2[1];
-                tet_mesh->vertex_targets[i*3+2] = v2[2];
-                tet_mesh->vertex_statuses[i] = MOVING;
+
+        for (int deg = 1; deg <= 180; deg++) {
+            printf("Evolving tet mesh (%d deg)...\n", deg);
+            //REAL angle = PI / 2;
+            REAL angle = 0.01745329251994329576923690768489;
+            for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
+                if (tet_mesh->get_vertex_status(i) == INTERFACE) {
+                    glm::detail::tvec4<REAL, glm::precision::defaultp> v(tet_mesh->vertices[i*3], tet_mesh->vertices[i*3+1], tet_mesh->vertices[i*3+2], 1);
+                    glm::detail::tvec4<REAL, glm::precision::defaultp> v2 = glm::rotateX(v, angle);
+                    tet_mesh->vertex_targets[i*3] = v2[0];
+                    tet_mesh->vertex_targets[i*3+1] = v2[1];
+                    tet_mesh->vertex_targets[i*3+2] = v2[2];
+                    tet_mesh->vertex_statuses[i] = MOVING;
+                }
             }
+            tet_mesh->evolve();
         }
     } else if (meshArg == "6") { // C-mesh
 
@@ -113,8 +119,8 @@ int main(int argc, char* argv[]) {
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         delete mesh;
     }
-    printf("Evolving tet mesh...\n");
-    tet_mesh->evolve();
+   // printf("Evolving tet mesh...\n");
+   // tet_mesh->evolve();
 
     printf("Displaying tet mesh...\n");
 
