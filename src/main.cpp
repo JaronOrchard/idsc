@@ -8,6 +8,11 @@
 #include <TGUI/TGUI.hpp>
 #include <tetgen.h>
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+
 #include "model/IndexedFaceSet.h"
 #include "render/Shader.h"
 #include "render/Renderable.h"
@@ -21,6 +26,7 @@
 #define WINDOW_HEIGHT 810
 #define FOV 45.0f
 #define FRAME_RATE 60
+#define PI 3.14159f
 
 int main(int argc, char* argv[]) {
 
@@ -57,6 +63,8 @@ int main(int argc, char* argv[]) {
      * 2: Debug tetmesh
      * 3: Big debug tetmesh
      * 4: Collapsed tetmesh
+     * 5: Sphere, rotated
+     * 6: C-mesh, joining together
      */
     std::string meshArg = "1";
     if (argc >= 2) { meshArg = argv[1]; }
@@ -67,6 +75,26 @@ int main(int argc, char* argv[]) {
         tet_mesh = TetMeshFactory::create_big_debug_tetmesh();
     } else if (meshArg == "4") { // Collapsed tetmesh
         tet_mesh = TetMeshFactory::create_collapsed_tetmesh();
+    } else if (meshArg == "5") { // Rotated sphere tetmesh
+        IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
+        tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
+        delete mesh;
+
+        REAL angle = PI / 2;
+        for (int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
+            if (tet_mesh->get_vertex_status(i) == INTERFACE) {
+                glm::detail::tvec4<REAL, glm::precision::defaultp> v(tet_mesh->vertices[i*3], tet_mesh->vertices[i*3+1], tet_mesh->vertices[i*3+2], 1);
+                glm::detail::tvec4<REAL, glm::precision::defaultp> v2 = glm::rotateX(v, angle);
+                tet_mesh->vertex_targets[i*3] = v2[0];
+                tet_mesh->vertex_targets[i*3+1] = v2[1];
+                tet_mesh->vertex_targets[i*3+2] = v2[2];
+                tet_mesh->vertex_statuses[i] = MOVING;
+            }
+        }
+    } else if (meshArg == "6") { // C-mesh
+
+        // C-mesh stuff goes here        
+
     } else { // Default case (tet mesh #1)
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
@@ -77,7 +105,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
         if (tet_mesh->get_vertex_status(i) == INTERFACE) {
             // scale and translate x
-            tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.2;
+            //tet_mesh->vertex_targets[i * 3] = tet_mesh->vertices[i * 3] * 1.2;
         }
     }
     tet_mesh->evolve();
