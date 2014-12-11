@@ -108,6 +108,28 @@ int main(int argc, char* argv[]) {
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         delete mesh;
 
+        for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
+			if (tet_mesh->get_vertex_status(i) == INTERFACE) 
+			{
+		        glm::detail::tvec4<REAL, glm::precision::defaultp> v(tet_mesh->vertices[i*3], tet_mesh->vertices[i*3+1], tet_mesh->vertices[i*3+2], 1);
+                if (tet_mesh->vertices[i*3] == 0.64f && tet_mesh->vertices[i*3+1] == 0.10f)
+				{
+					tet_mesh->vertex_targets[i*3] = tet_mesh->vertices[i*3];		// Stays the same
+					tet_mesh->vertex_targets[i*3+1] = -0.10f;	// Moves to create C Mesh case
+					tet_mesh->vertex_targets[i*3+2] = tet_mesh->vertices[i*3+2];	// Stays the same
+				}
+				else
+				{
+					tet_mesh->vertex_targets[i*3] = tet_mesh->vertices[i*3];
+					tet_mesh->vertex_targets[i*3+1] = tet_mesh->vertices[i*3+1];
+					tet_mesh->vertex_targets[i*3+2] = tet_mesh->vertices[i*3+2];
+				}
+				tet_mesh->vertex_statuses[i] = MOVING;
+            }
+		}
+        printf("Evolving tet mesh from C mesh...\n");
+        tet_mesh->evolve();
+		
     }  else if (meshArg == "7") { // Stretched sphere
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
