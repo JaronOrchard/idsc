@@ -67,22 +67,22 @@ int main(int argc, char* argv[]) {
      * 6: C-mesh, joining together
      * 7: Sphere, stretched in the x-direction
      */
-    std::string meshArg = "1";
-    if (argc >= 2) { meshArg = argv[1]; }
+    int meshArg = 1;
+    if (argc >= 2) { meshArg = atoi(argv[1]); }
 
-    if (meshArg == "2") { // Debug tetmesh
+    if (meshArg == 2) { // Debug tetmesh
         tet_mesh = TetMeshFactory::create_debug_tetmesh();
         printf("Evolving tet mesh ...\n");
         tet_mesh->evolve();
-    } else if (meshArg == "3") { // Big debug tetmesh
+    } else if (meshArg == 3) { // Big debug tetmesh
         tet_mesh = TetMeshFactory::create_big_debug_tetmesh();
         printf("Evolving tet mesh ...\n");
         tet_mesh->evolve();
-    } else if (meshArg == "4") { // Collapsed tetmesh
+    } else if (meshArg == 4) { // Collapsed tetmesh
         tet_mesh = TetMeshFactory::create_collapsed_tetmesh();
         printf("Evolving tet mesh ...\n");
         tet_mesh->evolve();
-    } else if (meshArg == "5") { // Rotated sphere tetmesh
+    } else if (meshArg == 5) { // Rotated sphere tetmesh
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         delete mesh;
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
             printf("Evolving tet mesh (%d deg)...\n", deg);
             tet_mesh->evolve();
         }
-    } else if (meshArg == "6") { // C-mesh
+    } else if (meshArg == 6) { // C-mesh
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/c_mesh.obj");
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         delete mesh;
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
         printf("Evolving tet mesh from C mesh...\n");
         tet_mesh->evolve();
 		
-    }  else if (meshArg == "7") { // Stretched sphere
+    }  else if (meshArg == 7) { // Stretched sphere
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/sphere.obj");
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
