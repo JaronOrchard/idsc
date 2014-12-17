@@ -23,12 +23,30 @@ TetMesh::TetMesh(std::vector<REAL> vertices, std::vector<REAL> vertex_targets,
     vertex_statuses.resize(vertices.size() / 3, STATIC);
     vertex_gravestones.resize(vertices.size() / 3, ALIVE);
     tet_gravestones.resize(tets.size() / 3, ALIVE);
+
+    for (unsigned int v = 0; v < vertices.size() / 3; v++) {
+        if (is_on_domain_boundary(v)) {
+            vertex_statuses[v] = STATIC_BOUNDARY;
+        }
+    }
+
+    unsigned int num_tets = this->tets.size() / 4;
+    for (unsigned int i = 0; i < num_tets; i++) {
+        GeometrySet<Edge> edges = get_edges_from_tet(i);
+        for (auto it = edges.begin(); it != edges.end(); it++) {
+            status_t v1 = get_vertex_status((*it).getV1());
+            status_t v2 = get_vertex_status((*it).getV2());
+            if ((v1 == DOMAIN_BOUNDARY && v2 == INTERFACE) || (v2 == DOMAIN_BOUNDARY && v1 == INTERFACE)) {
+                split_edge(*it);
+                break;
+            }
+        }
+    }
 }
 
 TetMesh::~TetMesh() {
     // nothing to clean up
 }
-
 
 void TetMesh::evolve() {
     bool done = false;
@@ -41,7 +59,9 @@ void TetMesh::evolve() {
         }
     }
     for (unsigned int i = 0; i < vertices.size() / 3; i++) {
-        vertex_statuses[i] = STATIC;
+        if (vertex_statuses[i] == MOVING) {
+            vertex_statuses[i] = STATIC;
+        }
     }
 }
 
@@ -53,7 +73,7 @@ bool TetMesh::advect() {
     unsigned int num_vertices_at_target = 0;
     unsigned int num_vertices = vertices.size() / 3;
     for (unsigned int i = 0; i < num_vertices; i++) {
-        if (vertex_gravestones[i] == DEAD || vertex_statuses[i] == STATIC) {
+        if (vertex_gravestones[i] == DEAD || vertex_statuses[i] != MOVING) {
             num_vertices_at_target++;
             continue;
         }
@@ -136,14 +156,32 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 }
 
 void TetMesh::retesselate() {
-    unsigned int num_tets = tets.size() / 4;
+    unsigned int num_tets;
+    num_tets = tets.size() / 4;
+    // need to uncomment if tetmesh grows bigger!
+    // for (unsigned int i = 0; i < num_tets; i++) {
+    //     if (tet_gravestones[i] == DEAD) {
+    //         continue;
+    //     }
+
+    //     GeometrySet<Edge> edges = get_edges_from_tet(i);
+    //     for (auto it = edges.begin(); it != edges.end(); it++) {
+    //         status_t v1 = get_vertex_status((*it).getV1());
+    //         status_t v2 = get_vertex_status((*it).getV2());
+    //         if ((v1 == DOMAIN_BOUNDARY && v2 == INTERFACE) || (v2 == DOMAIN_BOUNDARY && v1 == INTERFACE)) {
+    //             split_edge(*it);
+    //             break;
+    //         }
+    //     }
+    // }
+
+    num_tets = tets.size() / 4;
     for (unsigned int i = 0; i < num_tets; i++) {
         if (tet_gravestones[i] == DEAD) {
             continue;
         }
 
         if (is_coplanar(i)) {
-            printf("num tets %u: %lu\n", i, tets.size() / 4);
             collapse_tet(i);
         }
     }
@@ -256,6 +294,9 @@ bool TetMesh::is_cap(Face f, unsigned int apex) {
 }
 
 status_t TetMesh::get_vertex_status(unsigned int vertex_index) {
+    if (vertex_statuses[vertex_index] == STATIC_BOUNDARY) {
+        return DOMAIN_BOUNDARY;
+    }
     bool all_inside = true;
     bool all_outside = true;
     GeometrySet<unsigned int> neighbor_tets = vertex_tet_map[vertex_index];
@@ -269,31 +310,6 @@ status_t TetMesh::get_vertex_status(unsigned int vertex_index) {
     if (all_inside) {
         return INSIDE;
     } else if (all_outside) {
-        for (auto tet1 = neighbor_tets.begin(); tet1 != neighbor_tets.end(); tet1++) {
-            Face opposite = get_opposite_face(*tet1, vertex_index);
-            GeometrySet<Face> faces1 = get_faces_from_tet(*tet1);
-            for (auto face1 = faces1.begin(); face1 != faces1.end(); face1++) {
-                if (*face1 == opposite) {
-                    continue;
-                }
-                bool found_match = false;
-                for (auto tet2 = neighbor_tets.begin(); tet2 != neighbor_tets.end(); tet2++) {
-                    if (*tet1 == *tet2) {
-                        continue;
-                    }
-                    GeometrySet<Face> faces2 = get_faces_from_tet(*tet2);
-                    for (auto face2 = faces2.begin(); face2 != faces2.end(); face2++) {
-                        if (face1 == face2) {
-                            found_match = true;
-                            break;
-                        }
-                    }
-                }
-                if (!found_match) {
-                    return DOMAIN_BOUNDARY;
-                }
-            }
-        }
         return OUTSIDE;
     }
     return INTERFACE;
@@ -400,14 +416,14 @@ unsigned int TetMesh::insert_vertex(Edge edge) {
 unsigned int TetMesh::insert_vertex(Edge edge, unsigned int moving_vertex) {
     unsigned int c = insert_vertex(edge);
 
-    if (vertex_statuses[moving_vertex] == MOVING) {
+    if (vertex_statuses[moving_vertex] != STATIC) {
         vec_copy(&vertex_targets[c * 3], &vertex_targets[moving_vertex * 3]);
     } else {
         vec_copy(&vertex_targets[c * 3], &vertices[moving_vertex * 3]);
     }
     vec_copy(&vertices[c * 3], &vertices[moving_vertex * 3]);
 
-    vertex_statuses[c] = MOVING;
+    vertex_statuses[c] = vertex_statuses[moving_vertex];
     return c;
 }
 
@@ -572,4 +588,27 @@ GeometrySet<Face> TetMesh::get_faces_from_tet(int tet_id) {
     faces.insert(Face(tets[tet_id * 4], tets[tet_id * 4 + 2], tets[tet_id * 4 + 3]));
     faces.insert(Face(tets[tet_id * 4 + 1], tets[tet_id * 4 + 2], tets[tet_id * 4 + 3]));
     return faces;
+}
+
+GeometrySet<unsigned int> TetMesh::get_tets_from_face(Face f) {
+    return vertex_tet_map[f.getV1()]
+        .intersectWith(vertex_tet_map[f.getV2()])
+        .intersectWith(vertex_tet_map[f.getV3()]);
+}
+
+bool TetMesh::is_on_domain_boundary(unsigned int v) {
+    GeometrySet<unsigned int> neighbor_tets = this->vertex_tet_map[v];
+    for (auto tet = neighbor_tets.begin(); tet != neighbor_tets.end(); tet++) {
+        Face opposite = get_opposite_face(*tet, v);
+        GeometrySet<Face> faces = get_faces_from_tet(*tet);
+        for (auto face = faces.begin(); face != faces.end(); face++) {
+            if (*face == opposite) {
+                continue;
+            }
+            if (get_tets_from_face(*face).size() == 1) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
