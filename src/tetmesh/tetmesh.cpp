@@ -8,7 +8,6 @@
 
 // threshold for determining geometric equality
 #define EPSILON 0.00001
-#define MAX_ITERATIONS 100
 
 #define absolute(a) ((a) < 0 ? -(a) : (a))
 
@@ -32,13 +31,11 @@ TetMesh::~TetMesh() {
 
 
 void TetMesh::evolve() {
-    int num_iterations = 0;
     bool done = false;
     while (!done) {
         done = advect();
         retesselate();
-        num_iterations++;
-        if (MAX_ITERATIONS != -1 && num_iterations >= MAX_ITERATIONS) {
+        if (tets.size() / 4 > 10000) {
             std::cout << "warning: detected infinite loop, exitting" << std::endl;
             done = true;
         }
@@ -146,6 +143,7 @@ void TetMesh::retesselate() {
         }
 
         if (is_coplanar(i)) {
+            printf("num tets %u: %lu\n", i, tets.size() / 4);
             collapse_tet(i);
         }
     }
@@ -260,7 +258,8 @@ bool TetMesh::is_cap(Face f, unsigned int apex) {
 status_t TetMesh::get_vertex_status(unsigned int vertex_index) {
     bool all_inside = true;
     bool all_outside = true;
-    for (auto it = vertex_tet_map[vertex_index].begin(); it != vertex_tet_map[vertex_index].end(); it++) {
+    GeometrySet<unsigned int> neighbor_tets = vertex_tet_map[vertex_index];
+    for (auto it = neighbor_tets.begin(); it != neighbor_tets.end(); it++) {
         if (tet_statuses[*it] == INSIDE) {
             all_outside = false;
         } else {
@@ -270,6 +269,31 @@ status_t TetMesh::get_vertex_status(unsigned int vertex_index) {
     if (all_inside) {
         return INSIDE;
     } else if (all_outside) {
+        for (auto tet1 = neighbor_tets.begin(); tet1 != neighbor_tets.end(); tet1++) {
+            Face opposite = get_opposite_face(*tet1, vertex_index);
+            GeometrySet<Face> faces1 = get_faces_from_tet(*tet1);
+            for (auto face1 = faces1.begin(); face1 != faces1.end(); face1++) {
+                if (*face1 == opposite) {
+                    continue;
+                }
+                bool found_match = false;
+                for (auto tet2 = neighbor_tets.begin(); tet2 != neighbor_tets.end(); tet2++) {
+                    if (*tet1 == *tet2) {
+                        continue;
+                    }
+                    GeometrySet<Face> faces2 = get_faces_from_tet(*tet2);
+                    for (auto face2 = faces2.begin(); face2 != faces2.end(); face2++) {
+                        if (face1 == face2) {
+                            found_match = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found_match) {
+                    return DOMAIN_BOUNDARY;
+                }
+            }
+        }
         return OUTSIDE;
     }
     return INTERFACE;

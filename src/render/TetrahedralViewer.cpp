@@ -66,7 +66,7 @@ void TetrahedralViewer::init(int window_width, int window_height, float fov) {
 
     error_toggle = tgui::Checkbox::Ptr(*gui);
     error_toggle->load(THEME_CONFIG_FILE);
-    error_toggle->setText("Display invalid faces");
+    error_toggle->setText("Display boundary faces");
     error_toggle->setPosition(20, 300);
     error_toggle->check();
 
@@ -143,7 +143,7 @@ void TetrahedralViewer::update() {
     data = interface_toggle->isChecked();
     renderable->bind_uniform(&data, SCALAR_INT, 1, "display_interface");
     data = error_toggle->isChecked();
-    renderable->bind_uniform(&data, SCALAR_INT, 1, "display_error");
+    renderable->bind_uniform(&data, SCALAR_INT, 1, "display_boundary");
 
     float opacity = ((float) opacity_slider->getValue()) / UINT_32_MAX;
     renderable->bind_uniform(&opacity, SCALAR_FLOAT, 1, "opacity");

@@ -11,7 +11,8 @@
 typedef enum {
     INSIDE = 0,
     OUTSIDE = 1,
-    INTERFACE = 2
+    INTERFACE = 2,
+    DOMAIN_BOUNDARY = 3
 } status_t;
 
 typedef enum {
