@@ -40,10 +40,13 @@ void TetMesh::evolve() {
     while (!done) {
         done = advect();
         retesselate();
-        // if (tets.size() / 4 > 10000) {
-        //     std::cout << "warning: detected infinite loop, exitting" << std::endl;
-        //     done = true;
-        // }
+        int num_tets = 0;
+        for (auto it = tet_gravestones.begin(); it != tet_gravestones.end(); it++) {
+            if (*it == ALIVE) {
+                num_tets++;
+            }
+        }
+        printf("num tets %i\n", num_tets);
     }
     for (unsigned int i = 0; i < vertices.size() / 3; i++) {
         if (vertex_statuses[i] == MOVING) {
@@ -144,6 +147,7 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 
 void TetMesh::retesselate() {
     unsigned int num_tets;
+
     num_tets = tets.size() / 4;
     for (unsigned int i = 0; i < num_tets; i++) {
         if (tet_gravestones[i] == DEAD) {
@@ -172,6 +176,7 @@ void TetMesh::retesselate() {
         }
     }
 
+    num_tets = tets.size() / 4;
     for (unsigned int i = 0; i < num_tets; i++) {
         if (tet_gravestones[i] == DEAD) {
             continue;

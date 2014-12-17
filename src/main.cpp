@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
         delete mesh;
 
 
-        for (int deg = 1; deg <= 55; deg++) {
+        for (int deg = 1; deg <= 60; deg++) {
             REAL angle = PI / 180;
             for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
                 if (tet_mesh->get_vertex_status(i) == INTERFACE) {
