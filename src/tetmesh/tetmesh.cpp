@@ -29,19 +29,6 @@ TetMesh::TetMesh(std::vector<REAL> vertices, std::vector<REAL> vertex_targets,
             vertex_statuses[v] = STATIC_BOUNDARY;
         }
     }
-
-    unsigned int num_tets = this->tets.size() / 4;
-    for (unsigned int i = 0; i < num_tets; i++) {
-        GeometrySet<Edge> edges = get_edges_from_tet(i);
-        for (auto it = edges.begin(); it != edges.end(); it++) {
-            status_t v1 = get_vertex_status((*it).getV1());
-            status_t v2 = get_vertex_status((*it).getV2());
-            if ((v1 == DOMAIN_BOUNDARY && v2 == INTERFACE) || (v2 == DOMAIN_BOUNDARY && v1 == INTERFACE)) {
-                split_edge(*it);
-                break;
-            }
-        }
-    }
 }
 
 TetMesh::~TetMesh() {
@@ -53,10 +40,10 @@ void TetMesh::evolve() {
     while (!done) {
         done = advect();
         retesselate();
-        if (tets.size() / 4 > 10000) {
-            std::cout << "warning: detected infinite loop, exitting" << std::endl;
-            done = true;
-        }
+        // if (tets.size() / 4 > 10000) {
+        //     std::cout << "warning: detected infinite loop, exitting" << std::endl;
+        //     done = true;
+        // }
     }
     for (unsigned int i = 0; i < vertices.size() / 3; i++) {
         if (vertex_statuses[i] == MOVING) {
@@ -119,7 +106,7 @@ TetMesh::DistanceMovableInfo TetMesh::get_distance_movable(unsigned int vertex_i
         Face f = get_opposite_face(*it, vertex_index);
         calculate_plane(plane, f);
         REAL distance = intersect_plane(plane, &vertices[vertex_index * 3], velocity);
-        if (distance > 0 && (distance < dminfo.distance || dminfo.distance == -1)) {
+        if (distance >= 0 && (distance < dminfo.distance || dminfo.distance == -1)) {
             dminfo.distance = distance;
             dminfo.tet_index = *it;
         }
@@ -158,22 +145,21 @@ REAL TetMesh::intersect_plane(REAL * plane, REAL * vertex, REAL * velocity) {
 void TetMesh::retesselate() {
     unsigned int num_tets;
     num_tets = tets.size() / 4;
-    // need to uncomment if tetmesh grows bigger!
-    // for (unsigned int i = 0; i < num_tets; i++) {
-    //     if (tet_gravestones[i] == DEAD) {
-    //         continue;
-    //     }
+    for (unsigned int i = 0; i < num_tets; i++) {
+        if (tet_gravestones[i] == DEAD) {
+            continue;
+        }
 
-    //     GeometrySet<Edge> edges = get_edges_from_tet(i);
-    //     for (auto it = edges.begin(); it != edges.end(); it++) {
-    //         status_t v1 = get_vertex_status((*it).getV1());
-    //         status_t v2 = get_vertex_status((*it).getV2());
-    //         if ((v1 == DOMAIN_BOUNDARY && v2 == INTERFACE) || (v2 == DOMAIN_BOUNDARY && v1 == INTERFACE)) {
-    //             split_edge(*it);
-    //             break;
-    //         }
-    //     }
-    // }
+        GeometrySet<Edge> edges = get_edges_from_tet(i);
+        for (auto it = edges.begin(); it != edges.end(); it++) {
+            status_t v1 = get_vertex_status((*it).getV1());
+            status_t v2 = get_vertex_status((*it).getV2());
+            if ((v1 == DOMAIN_BOUNDARY && v2 == INTERFACE) || (v2 == DOMAIN_BOUNDARY && v1 == INTERFACE)) {
+                split_edge(*it);
+                break;
+            }
+        }
+    }
 
     num_tets = tets.size() / 4;
     for (unsigned int i = 0; i < num_tets; i++) {
@@ -183,6 +169,22 @@ void TetMesh::retesselate() {
 
         if (is_coplanar(i)) {
             collapse_tet(i);
+        }
+    }
+
+    for (unsigned int i = 0; i < num_tets; i++) {
+        if (tet_gravestones[i] == DEAD) {
+            continue;
+        }
+
+        GeometrySet<Edge> edges = get_edges_from_tet(i);
+        for (auto it = edges.begin(); it != edges.end(); it++) {
+            unsigned int v1 = (*it).getV1();
+            unsigned int v2 = (*it).getV2();
+            if (is_movable(v1) && is_movable(v2)) {
+                collapse_edge(*it);
+                break;
+            }
         }
     }
 }
@@ -357,6 +359,10 @@ bool TetMesh::is_movable(unsigned int v) {
 // TODO: collapsing could possible invert a tet
 //      Use getDistanceMovable to make sure this does not happen
 int TetMesh::collapse_edge(Edge edge) {
+    static REAL velocity[] = {
+        0, 0, 0
+    };
+
     unsigned int v1 = edge.getV1();
     unsigned int v2 = edge.getV2();
     if (!is_movable(v1) && !is_movable(v2)) {
@@ -370,10 +376,28 @@ int TetMesh::collapse_edge(Edge edge) {
     unsigned int c;
 
     if (!is_movable(v1)) {
+        vec_subtract(velocity, &vertices[v1 * 3], &vertices[v2 * 3]);
+        if (get_distance_movable(v2, velocity).distance < vec_length(velocity)) {
+            return -1;
+        }
         c = insert_vertex(edge, v1);
     } else if (!is_movable(v2)) {
+        vec_subtract(velocity, &vertices[v2 * 3], &vertices[v1 * 3]);
+        if (get_distance_movable(v1, velocity).distance < vec_length(velocity)) {
+            return -1;
+        }
         c = insert_vertex(edge, v2);
     } else {
+        vec_subtract(velocity, &vertices[v1 * 3], &vertices[v2 * 3]);
+        vec_divide(velocity, velocity, 2);
+        if (get_distance_movable(v2, velocity).distance < vec_length(velocity)) {
+            return -1;
+        }
+
+        vec_scale(velocity, velocity, -1);
+        if (get_distance_movable(v1, velocity).distance < vec_length(velocity)) {
+            return -1;
+        }
         c = insert_vertex(edge);
     }
 
