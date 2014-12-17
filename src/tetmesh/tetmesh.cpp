@@ -310,12 +310,16 @@ unsigned int TetMesh::split_edge(Edge edge) {
     return c;
 }
 
+bool TetMesh::is_movable(unsigned int v) {
+    return vertex_statuses[v] == STATIC && get_vertex_status(v) != INTERFACE;
+}
+
 // TODO: collapsing could possible invert a tet
 //      Use getDistanceMovable to make sure this does not happen
 int TetMesh::collapse_edge(Edge edge) {
     unsigned int v1 = edge.getV1();
     unsigned int v2 = edge.getV2();
-    if (vertex_statuses[v1] == MOVING && vertex_statuses[v2] == MOVING) {
+    if (!is_movable(v1) && !is_movable(v2)) {
         std::cout << "warning: unable to collapse edge " << v1 << ", " << v2
             << ".  May be in an infinite loop." << std::endl;
         return -1;
@@ -325,9 +329,9 @@ int TetMesh::collapse_edge(Edge edge) {
 
     unsigned int c;
 
-    if (vertex_statuses[v1] == MOVING) {
+    if (!is_movable(v1)) {
         c = insert_vertex(edge, v1);
-    } else if (vertex_statuses[v2] == MOVING) {
+    } else if (!is_movable(v2)) {
         c = insert_vertex(edge, v2);
     } else {
         c = insert_vertex(edge);
@@ -372,7 +376,11 @@ unsigned int TetMesh::insert_vertex(Edge edge) {
 unsigned int TetMesh::insert_vertex(Edge edge, unsigned int moving_vertex) {
     unsigned int c = insert_vertex(edge);
 
-    vec_copy(&vertex_targets[c * 3], &vertex_targets[moving_vertex * 3]);
+    if (vertex_statuses[moving_vertex] == MOVING) {
+        vec_copy(&vertex_targets[c * 3], &vertex_targets[moving_vertex * 3]);
+    } else {
+        vec_copy(&vertex_targets[c * 3], &vertices[moving_vertex * 3]);
+    }
     vec_copy(&vertices[c * 3], &vertices[moving_vertex * 3]);
 
     vertex_statuses[c] = MOVING;

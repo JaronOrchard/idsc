@@ -79,6 +79,7 @@ private:
     Face get_opposite_face(unsigned int tet_id, unsigned int vert_id);
     unsigned int split_edge(Edge edge);
     int collapse_edge(Edge edge);
+    bool is_movable(unsigned int v);
 
     REAL get_edge_length(Edge edge);
     REAL distance_between_point_and_edge(Edge edge, int vertex_index);
