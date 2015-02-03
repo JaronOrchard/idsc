@@ -100,6 +100,7 @@
     <ClInclude Include="..\..\..\src\tetmesh\TetMeshFactory.h" />
     <ClInclude Include="..\..\..\src\util\geometry.h" />
     <ClInclude Include="..\..\..\src\util\geometrySet.h" />
+    <ClInclude Include="..\..\..\src\util\vec.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

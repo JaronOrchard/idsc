@@ -80,5 +80,8 @@
     <ClInclude Include="..\..\..\src\tetmesh\TetMeshFactory.h">
       <Filter>tetmesh</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\util\vec.h">
+      <Filter>util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

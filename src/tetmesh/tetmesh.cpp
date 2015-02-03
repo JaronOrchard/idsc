@@ -641,3 +641,37 @@ bool TetMesh::is_on_domain_boundary(unsigned int v) {
     }
     return false;
 }
+
+// Derived from the equation at the end of section 3.2 in the DSC paper
+// *** NOTE: This function is not yet complete, as it does not compute the volume of the tet.
+REAL TetMesh::get_tet_quality(int tet_id) {
+    // Compute volume:
+    REAL volume = 1; // ------------ INCOMPLETE
+    
+    // Compute rms of lengths of edges:
+    REAL l_rms = 0;
+    static REAL edgedist[] = {
+        0, 0, 0
+    };
+    REAL * v1 = &vertices[tets[tet_id * 4] * 3];
+    REAL * v2 = &vertices[tets[tet_id * 4 + 1] * 3];
+    REAL * v3 = &vertices[tets[tet_id * 4 + 2] * 3];
+    REAL * v4 = &vertices[tets[tet_id * 4 + 3] * 3];
+    
+    vec_subtract(edgedist, v1, v2);
+    l_rms += vec_length(edgedist) * vec_length(edgedist);
+    vec_subtract(edgedist, v1, v3);
+    l_rms += vec_length(edgedist) * vec_length(edgedist);
+    vec_subtract(edgedist, v1, v4);
+    l_rms += vec_length(edgedist) * vec_length(edgedist);
+    vec_subtract(edgedist, v2, v3);
+    l_rms += vec_length(edgedist) * vec_length(edgedist);
+    vec_subtract(edgedist, v2, v4);
+    l_rms += vec_length(edgedist) * vec_length(edgedist);
+    vec_subtract(edgedist, v3, v4);
+    l_rms += vec_length(edgedist) * vec_length(edgedist);
+    l_rms = sqrt(l_rms / 6.0);
+
+    // Return final value:
+    return 6.0 * sqrt(2.0) * volume / (l_rms * l_rms * l_rms);
+}

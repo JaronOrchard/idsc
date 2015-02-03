@@ -94,6 +94,7 @@ private:
     GeometrySet<Face> get_faces_from_tet(int tet_id);
     GeometrySet<unsigned int> get_tets_from_face(Face f);
     bool is_on_domain_boundary(unsigned int v);
+    REAL get_tet_quality(int tet_id);
 
     void delete_tet(unsigned int t);
     unsigned int insert_tet(unsigned int v1, unsigned int v2, unsigned int v3, unsigned int v4, status_t tet_status);
