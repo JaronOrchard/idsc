@@ -645,19 +645,32 @@ bool TetMesh::is_on_domain_boundary(unsigned int v) {
 // Derived from the equation at the end of section 3.2 in the DSC paper
 // *** NOTE: This function is not yet complete, as it does not compute the volume of the tet.
 REAL TetMesh::get_tet_quality(int tet_id) {
-    // Compute volume:
-    REAL volume = 1; // ------------ INCOMPLETE
-    
-    // Compute rms of lengths of edges:
-    REAL l_rms = 0;
-    static REAL edgedist[] = {
-        0, 0, 0
-    };
     REAL * v1 = &vertices[tets[tet_id * 4] * 3];
     REAL * v2 = &vertices[tets[tet_id * 4 + 1] * 3];
     REAL * v3 = &vertices[tets[tet_id * 4 + 2] * 3];
     REAL * v4 = &vertices[tets[tet_id * 4 + 3] * 3];
     
+    // Compute volume:
+    REAL mat[3][3];
+    mat[0][0] = v1[0] - v4[0];
+    mat[0][1] = v1[1] - v4[1];
+    mat[0][2] = v1[2] - v4[2];
+    mat[1][0] = v2[0] - v4[0];
+    mat[1][1] = v2[1] - v4[1];
+    mat[1][2] = v2[2] - v4[2];
+    mat[2][0] = v3[0] - v4[0];
+    mat[2][1] = v3[1] - v4[1];
+    mat[2][2] = v3[2] - v4[2];
+    // Determinant code courtesy of http://www.cquestions.com/2011/09/c-program-to-find-determinant-of-matrix.html:
+    REAL determinant = mat[0][0]*((mat[1][1]*mat[2][2]) - (mat[2][1]*mat[1][2])) - mat[0][1]*(mat[1][0]*mat[2][2] - mat[2][0]*mat[1][2]) + mat[0][2]*(mat[1][0]*mat[2][1] - mat[2][0]*mat[1][1]);
+    if (determinant < 0) { determinant *= -1; }
+    REAL volume = 1.0 / 6.0 * determinant;
+
+    // Compute rms of lengths of edges:
+    REAL l_rms = 0;
+    static REAL edgedist[] = {
+        0, 0, 0
+    };
     vec_subtract(edgedist, v1, v2);
     l_rms += vec_length(edgedist) * vec_length(edgedist);
     vec_subtract(edgedist, v1, v3);
@@ -674,4 +687,18 @@ REAL TetMesh::get_tet_quality(int tet_id) {
 
     // Return final value:
     return 6.0 * sqrt(2.0) * volume / (l_rms * l_rms * l_rms);
+}
+
+void TetMesh::report_tet_quality() {
+    REAL lowest_quality = 1;
+    REAL highest_quality = 0;
+    REAL avg_quality = 0;
+    for (size_t i = 0; i < tets.size() / 4; i++) {
+        if (tet_gravestones[i] == DEAD) { continue; }
+        REAL quality = get_tet_quality(i);
+        if (quality < lowest_quality) { lowest_quality = quality; }
+        if (quality > highest_quality) { highest_quality = quality; }
+        avg_quality += quality;
+    }
+    std::cout << "  Quality (lowest/average/highest): " << lowest_quality << " / " << avg_quality / tets.size() / 4 << " / " << highest_quality << std::endl;
 }

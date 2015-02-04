@@ -87,8 +87,8 @@ int main(int argc, char* argv[]) {
         tet_mesh = TetMeshFactory::from_indexed_face_set(*mesh);
         delete mesh;
 
-
-        for (int deg = 1; deg <= 60; deg++) {
+        tet_mesh->report_tet_quality();
+        for (int deg = 1; deg <= 55; deg++) {
             REAL angle = PI / 180;
             for (unsigned int i = 0; i < tet_mesh->vertices.size() / 3; i++) {
                 if (tet_mesh->get_vertex_status(i) == INTERFACE) {
@@ -102,6 +102,7 @@ int main(int argc, char* argv[]) {
             }
             printf("Evolving tet mesh (%d deg)...\n", deg);
             tet_mesh->evolve();
+            tet_mesh->report_tet_quality();
         }
     } else if (meshArg == 6) { // C-mesh
         IndexedFaceSet * mesh = IndexedFaceSet::load_from_obj("assets/models/c_mesh.obj");
